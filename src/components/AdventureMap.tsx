@@ -265,15 +265,15 @@ const AdventureMap = ({ destinations, onAdd, onUpdate, onRemove }: AdventureMapP
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="absolute inset-0 z-[999] md:hidden"
+              className="absolute inset-0 z-[1060] bg-black/30"
               onClick={() => setSelectedDest(null)}
             />
             <motion.div
-              initial={{ opacity: 0, y: 80, scale: 0.95 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 80, scale: 0.95 }}
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
               transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-              className="absolute bottom-20 left-3 right-3 md:bottom-6 md:left-auto md:right-6 md:w-[380px] z-[1000] bg-card/95 backdrop-blur-xl rounded-2xl border border-border/50 p-5 shadow-2xl"
+              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[calc(100%-2rem)] max-w-[440px] z-[1070] bg-card/95 backdrop-blur-xl rounded-2xl border border-border/50 p-7 shadow-2xl"
               style={{ boxShadow: `0 0 40px ${typeConfig[selectedDest.type].glow}, 0 20px 60px rgba(0,0,0,0.5)` }}
             >
               <div className="absolute top-4 right-4 flex items-center gap-1.5">
