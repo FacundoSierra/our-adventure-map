@@ -17,7 +17,7 @@ const navItems: { id: Section; label: string; icon: React.ReactNode }[] = [
 
 const NavigationBar = ({ active, onChange }: NavigationBarProps) => {
   return (
-    <nav className="fixed top-0 left-0 right-0 z-40">
+    <nav className="fixed top-0 left-0 right-0 z-[1100]">
       <div className="bg-card/80 backdrop-blur-2xl border-b border-border/30">
         <div className="max-w-lg mx-auto flex items-center justify-around py-1.5 px-2">
           {navItems.map((item) => (
