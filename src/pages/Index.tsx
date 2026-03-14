@@ -39,7 +39,7 @@ const Index = () => {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 60 }}
             transition={{ type: 'spring', damping: 28, stiffness: 300 }}
-            className="absolute inset-0 z-30 overflow-y-auto bg-card/90 backdrop-blur-xl"
+            className="absolute inset-0 z-[1050] overflow-y-auto bg-card/90 backdrop-blur-xl pb-20"
           >
             <button
               onClick={() => setActiveSection('map')}
