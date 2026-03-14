@@ -5,12 +5,12 @@ interface WelcomeScreenProps {
   onStart: () => void;
 }
 
-const FloatingParticle = ({ delay, x, y, size, children }: { delay: number; x: string; y: string; size: number; children: React.ReactNode }) => (
+const FloatingParticle = ({ delay, x, y, children }: { delay: number; x: string; y: string; children: React.ReactNode }) => (
   <motion.div
-    className="absolute text-gold/15"
+    className="absolute text-primary/15"
     style={{ left: x, top: y }}
     initial={{ opacity: 0, scale: 0 }}
-    animate={{ 
+    animate={{
       opacity: [0, 0.3, 0.15, 0.3, 0],
       scale: [0.5, 1, 0.8, 1, 0.5],
       y: [-20, 20, -15, 10, -20],
@@ -26,26 +26,24 @@ const WelcomeScreen = ({ onStart }: WelcomeScreenProps) => {
   return (
     <motion.div
       className="fixed inset-0 z-50 flex flex-col items-center justify-center overflow-hidden"
-      style={{ background: 'radial-gradient(ellipse at 50% 40%, hsl(240 10% 12%), hsl(240 10% 6%))' }}
+      style={{ background: 'radial-gradient(ellipse at 50% 40%, hsl(225 20% 12%), hsl(225 20% 5%))' }}
       exit={{ opacity: 0, scale: 1.05 }}
       transition={{ duration: 1 }}
     >
-      {/* Ambient glow */}
+      {/* Ambient glows */}
       <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full opacity-[0.04]"
-          style={{ background: 'radial-gradient(circle, hsl(var(--gold)), transparent 70%)' }} />
-        <div className="absolute bottom-1/4 left-1/3 w-[300px] h-[300px] rounded-full opacity-[0.03]"
-          style={{ background: 'radial-gradient(circle, hsl(var(--rose)), transparent 70%)' }} />
+        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full opacity-[0.05]"
+          style={{ background: 'radial-gradient(circle, hsl(var(--pink)), transparent 70%)' }} />
+        <div className="absolute bottom-1/4 right-1/3 w-[400px] h-[400px] rounded-full opacity-[0.04]"
+          style={{ background: 'radial-gradient(circle, hsl(var(--blue)), transparent 70%)' }} />
       </div>
 
-      {/* Floating particles */}
-      <FloatingParticle delay={0} x="12%" y="18%" size={24}><Plane size={24} /></FloatingParticle>
-      <FloatingParticle delay={1.5} x="82%" y="22%" size={20}><Heart size={20} /></FloatingParticle>
-      <FloatingParticle delay={0.8} x="18%" y="72%" size={22}><MapPin size={22} /></FloatingParticle>
-      <FloatingParticle delay={2.2} x="78%" y="68%" size={18}><Star size={18} /></FloatingParticle>
-      <FloatingParticle delay={3} x="50%" y="12%" size={16}><Sparkles size={16} /></FloatingParticle>
-      <FloatingParticle delay={1} x="88%" y="48%" size={14}><Heart size={14} /></FloatingParticle>
-      <FloatingParticle delay={2.8} x="8%" y="45%" size={16}><Star size={16} /></FloatingParticle>
+      <FloatingParticle delay={0} x="12%" y="18%"><Plane size={24} /></FloatingParticle>
+      <FloatingParticle delay={1.5} x="82%" y="22%"><Heart size={20} /></FloatingParticle>
+      <FloatingParticle delay={0.8} x="18%" y="72%"><MapPin size={22} /></FloatingParticle>
+      <FloatingParticle delay={2.2} x="78%" y="68%"><Star size={18} /></FloatingParticle>
+      <FloatingParticle delay={3} x="50%" y="12%"><Sparkles size={16} /></FloatingParticle>
+      <FloatingParticle delay={1} x="88%" y="48%"><Heart size={14} /></FloatingParticle>
 
       <motion.div
         initial={{ opacity: 0 }}
@@ -53,19 +51,17 @@ const WelcomeScreen = ({ onStart }: WelcomeScreenProps) => {
         transition={{ duration: 1.5, delay: 0.2 }}
         className="text-center px-8 max-w-xl relative z-10"
       >
-        {/* Animated icon */}
         <motion.div
           initial={{ scale: 0, rotate: -180 }}
           animate={{ scale: 1, rotate: 0 }}
           transition={{ type: 'spring', damping: 15, stiffness: 100, delay: 0.5 }}
           className="mb-10 inline-flex items-center justify-center w-24 h-24 rounded-full relative"
         >
-          <div className="absolute inset-0 rounded-full gradient-gold opacity-90" />
+          <div className="absolute inset-0 rounded-full gradient-pink-blue opacity-90" />
           <div className="absolute inset-0 rounded-full animate-pulse-glow" />
-          <MapPin className="text-primary-foreground relative z-10" size={40} />
+          <MapPin className="text-white relative z-10" size={40} />
         </motion.div>
 
-        {/* Decorative line */}
         <motion.div
           initial={{ scaleX: 0 }}
           animate={{ scaleX: 1 }}
@@ -81,7 +77,7 @@ const WelcomeScreen = ({ onStart }: WelcomeScreenProps) => {
         >
           Nuestro Mapa
           <br />
-          <span className="text-gold italic">de Aventuras</span>
+          <span className="text-pink-accent italic">de Aventuras</span>
         </motion.h1>
 
         <motion.p
@@ -101,38 +97,25 @@ const WelcomeScreen = ({ onStart }: WelcomeScreenProps) => {
           className="flex flex-col items-center gap-6"
         >
           <motion.button
-            whileHover={{ scale: 1.04, boxShadow: '0 0 40px hsl(38 70% 55% / 0.3)' }}
+            whileHover={{ scale: 1.04 }}
             whileTap={{ scale: 0.97 }}
             onClick={onStart}
-            className="group relative px-10 py-4 rounded-full overflow-hidden font-semibold text-lg tracking-wide transition-all duration-500"
+            className="group relative px-10 py-4 rounded-full overflow-hidden font-semibold text-lg tracking-wide transition-all duration-500 glow-pink"
           >
-            <div className="absolute inset-0 gradient-gold opacity-90 group-hover:opacity-100 transition-opacity" />
-            <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
-              style={{ background: 'linear-gradient(135deg, hsl(var(--gold)), hsl(38 80% 60%), hsl(var(--gold-dark)))' }} />
-            <span className="relative z-10 text-primary-foreground flex items-center gap-2">
+            <div className="absolute inset-0 gradient-pink-blue opacity-90 group-hover:opacity-100 transition-opacity" />
+            <span className="relative z-10 text-white flex items-center gap-2">
               Empezar nuestra aventura
               <Heart size={18} className="group-hover:scale-110 transition-transform" />
             </span>
           </motion.button>
 
-          <motion.span
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 2.5 }}
-            className="text-2xl"
-          >
+          <motion.span initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 2.5 }} className="text-2xl">
             ❤️
           </motion.span>
         </motion.div>
       </motion.div>
 
-      {/* Bottom shimmer */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 2.5 }}
-        className="absolute bottom-10 w-64 h-px shimmer"
-      />
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 2.5 }} className="absolute bottom-10 w-64 h-px shimmer" />
     </motion.div>
   );
 };

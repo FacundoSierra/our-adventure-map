@@ -1,7 +1,7 @@
-import { MapPin, Clock, Compass, BarChart3, BookHeart } from 'lucide-react';
+import { MapPin, Clock, BarChart3, BookHeart } from 'lucide-react';
 import { motion } from 'framer-motion';
 
-export type Section = 'map' | 'timeline' | 'adventures' | 'stats' | 'album';
+export type Section = 'map' | 'timeline' | 'stats' | 'album';
 
 interface NavigationBarProps {
   active: Section;
@@ -11,7 +11,6 @@ interface NavigationBarProps {
 const navItems: { id: Section; label: string; icon: React.ReactNode }[] = [
   { id: 'map', label: 'Mapa', icon: <MapPin size={18} /> },
   { id: 'timeline', label: 'Historia', icon: <Clock size={18} /> },
-  { id: 'adventures', label: 'Sueños', icon: <Compass size={18} /> },
   { id: 'stats', label: 'Stats', icon: <BarChart3 size={18} /> },
   { id: 'album', label: 'Álbum', icon: <BookHeart size={18} /> },
 ];
@@ -27,14 +26,14 @@ const NavigationBar = ({ active, onChange }: NavigationBarProps) => {
               onClick={() => onChange(item.id)}
               className={`relative flex flex-col items-center gap-0.5 px-3 py-2 rounded-2xl transition-all duration-300 min-w-[56px] ${
                 active === item.id
-                  ? 'text-gold'
+                  ? 'text-primary'
                   : 'text-muted-foreground/60 hover:text-foreground/80'
               }`}
             >
               {active === item.id && (
                 <motion.div
                   layoutId="nav-pill"
-                  className="absolute inset-0 rounded-2xl bg-gold/10 border border-gold/15"
+                  className="absolute inset-0 rounded-2xl bg-primary/10 border border-primary/15"
                   transition={{ type: 'spring', duration: 0.5, bounce: 0.15 }}
                 />
               )}
