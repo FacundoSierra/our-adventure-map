@@ -2,60 +2,60 @@
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Lato:wght@300;400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Inter:wght@300;400;500;600;700&display=swap');
 
 @layer base {
   :root {
-    --background: 240 10% 8%;
-    --foreground: 40 30% 90%;
+    --background: 225 20% 7%;
+    --foreground: 220 20% 92%;
 
-    --card: 240 8% 12%;
-    --card-foreground: 40 30% 90%;
+    --card: 225 18% 11%;
+    --card-foreground: 220 20% 92%;
 
-    --popover: 240 8% 14%;
-    --popover-foreground: 40 30% 90%;
+    --popover: 225 18% 13%;
+    --popover-foreground: 220 20% 92%;
 
-    --primary: 38 70% 55%;
-    --primary-foreground: 240 10% 8%;
+    --primary: 340 65% 60%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 340 30% 45%;
-    --secondary-foreground: 40 30% 95%;
+    --secondary: 215 70% 55%;
+    --secondary-foreground: 0 0% 100%;
 
-    --muted: 240 6% 18%;
-    --muted-foreground: 40 15% 55%;
+    --muted: 225 15% 16%;
+    --muted-foreground: 220 10% 50%;
 
-    --accent: 340 25% 35%;
-    --accent-foreground: 40 30% 95%;
+    --accent: 280 40% 50%;
+    --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
 
-    --border: 240 6% 20%;
-    --input: 240 6% 20%;
-    --ring: 38 70% 55%;
+    --border: 225 15% 18%;
+    --input: 225 15% 18%;
+    --ring: 340 65% 60%;
 
     --radius: 0.75rem;
 
-    --gold: 38 70% 55%;
-    --gold-light: 40 60% 70%;
-    --gold-dark: 36 80% 40%;
-    --rose: 340 30% 50%;
-    --rose-light: 340 40% 70%;
-    --cream: 40 30% 90%;
-    --warm-bg: 240 8% 10%;
-    --warm-card: 240 8% 14%;
+    --pink: 340 65% 60%;
+    --pink-light: 340 70% 75%;
+    --pink-dark: 340 60% 45%;
+    --blue: 215 70% 55%;
+    --blue-light: 215 65% 72%;
+    --blue-dark: 215 75% 40%;
+    --purple: 280 50% 55%;
+    --cream: 220 20% 92%;
 
     --font-display: 'Playfair Display', serif;
-    --font-body: 'Lato', sans-serif;
+    --font-body: 'Inter', sans-serif;
 
-    --sidebar-background: 240 8% 10%;
-    --sidebar-foreground: 40 30% 90%;
-    --sidebar-primary: 38 70% 55%;
-    --sidebar-primary-foreground: 240 10% 8%;
-    --sidebar-accent: 240 6% 18%;
-    --sidebar-accent-foreground: 40 30% 90%;
-    --sidebar-border: 240 6% 20%;
-    --sidebar-ring: 38 70% 55%;
+    --sidebar-background: 225 18% 9%;
+    --sidebar-foreground: 220 20% 92%;
+    --sidebar-primary: 340 65% 60%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 225 15% 16%;
+    --sidebar-accent-foreground: 220 20% 92%;
+    --sidebar-border: 225 15% 18%;
+    --sidebar-ring: 340 65% 60%;
   }
 }
 
@@ -77,53 +77,36 @@
 }
 
 @layer components {
-  .text-gold {
-    color: hsl(var(--gold));
+  .text-pink-accent {
+    color: hsl(var(--pink));
   }
 
-  .text-gold-light {
-    color: hsl(var(--gold-light));
-  }
-
-  .text-rose-accent {
-    color: hsl(var(--rose));
+  .text-blue-accent {
+    color: hsl(var(--blue));
   }
 
   .text-cream {
     color: hsl(var(--cream));
   }
 
-  .bg-warm {
-    background-color: hsl(var(--warm-bg));
+  .gradient-pink-blue {
+    background: linear-gradient(135deg, hsl(var(--pink)), hsl(var(--blue)));
   }
 
-  .bg-warm-card {
-    background-color: hsl(var(--warm-card));
+  .gradient-pink {
+    background: linear-gradient(135deg, hsl(var(--pink)), hsl(var(--pink-dark)));
   }
 
-  .border-gold {
-    border-color: hsl(var(--gold) / 0.3);
+  .gradient-blue {
+    background: linear-gradient(135deg, hsl(var(--blue)), hsl(var(--blue-dark)));
   }
 
-  .gradient-gold {
-    background: linear-gradient(135deg, hsl(var(--gold)), hsl(var(--gold-dark)));
+  .glow-pink {
+    box-shadow: 0 0 20px hsl(var(--pink) / 0.2), 0 0 60px hsl(var(--pink) / 0.06);
   }
 
-  .gradient-rose {
-    background: linear-gradient(135deg, hsl(var(--rose)), hsl(var(--rose-light)));
-  }
-
-  .glow-gold {
-    box-shadow: 0 0 20px hsl(var(--gold) / 0.15), 0 0 60px hsl(var(--gold) / 0.05);
-  }
-
-  .glow-rose {
-    box-shadow: 0 0 20px hsl(var(--rose) / 0.15);
-  }
-
-  .card-romantic {
-    @apply bg-warm-card rounded-2xl border border-gold p-6;
-    box-shadow: 0 4px 30px hsl(var(--gold) / 0.05);
+  .glow-blue {
+    box-shadow: 0 0 20px hsl(var(--blue) / 0.2), 0 0 60px hsl(var(--blue) / 0.06);
   }
 
   .font-display {
@@ -137,15 +120,14 @@
   .shimmer {
     background: linear-gradient(
       90deg,
-      hsl(var(--gold) / 0) 0%,
-      hsl(var(--gold) / 0.15) 50%,
-      hsl(var(--gold) / 0) 100%
+      hsl(var(--pink) / 0) 0%,
+      hsl(var(--pink) / 0.15) 50%,
+      hsl(var(--pink) / 0) 100%
     );
     background-size: 200% 100%;
     animation: shimmer 3s infinite;
   }
 
-  /* Safe area for mobile nav */
   .safe-bottom {
     padding-bottom: env(safe-area-inset-bottom, 0px);
   }
@@ -162,8 +144,8 @@
 }
 
 @keyframes pulse-glow {
-  0%, 100% { box-shadow: 0 0 8px hsl(var(--gold) / 0.15); }
-  50% { box-shadow: 0 0 24px hsl(var(--gold) / 0.35); }
+  0%, 100% { box-shadow: 0 0 8px hsl(var(--pink) / 0.15); }
+  50% { box-shadow: 0 0 24px hsl(var(--pink) / 0.35); }
 }
 
 @keyframes marker-pulse {
@@ -181,12 +163,12 @@
 
 /* Leaflet overrides */
 .leaflet-container {
-  background: hsl(240 10% 6%) !important;
+  background: hsl(225 20% 5%) !important;
   font-family: var(--font-body) !important;
 }
 
 .leaflet-tile-pane {
-  filter: brightness(0.55) saturate(0.25) sepia(0.35);
+  filter: brightness(0.5) saturate(0.2) hue-rotate(200deg);
 }
 
 .leaflet-control-zoom {
@@ -197,10 +179,10 @@
 }
 
 .leaflet-control-zoom a {
-  background: hsl(240 8% 14% / 0.9) !important;
+  background: hsl(225 18% 13% / 0.9) !important;
   backdrop-filter: blur(12px) !important;
-  color: hsl(40 30% 80%) !important;
-  border-color: hsl(240 6% 22%) !important;
+  color: hsl(220 20% 80%) !important;
+  border-color: hsl(225 15% 22%) !important;
   width: 36px !important;
   height: 36px !important;
   line-height: 36px !important;
@@ -208,42 +190,38 @@
 }
 
 .leaflet-control-zoom a:hover {
-  background: hsl(240 8% 18%) !important;
-  color: hsl(var(--gold)) !important;
+  background: hsl(225 18% 18%) !important;
+  color: hsl(var(--pink)) !important;
 }
 
-/* Custom marker hover */
 .custom-marker-icon:hover .marker-pin {
   transform: scale(1.15) !important;
   filter: brightness(1.1);
 }
 
 .leaflet-popup-content-wrapper {
-  background: hsl(240 8% 14%) !important;
-  color: hsl(40 30% 90%) !important;
+  background: hsl(225 18% 13%) !important;
+  color: hsl(220 20% 92%) !important;
   border-radius: 1rem !important;
-  border: 1px solid hsl(38 70% 55% / 0.2) !important;
+  border: 1px solid hsl(var(--pink) / 0.2) !important;
   box-shadow: 0 10px 40px hsl(0 0% 0% / 0.5) !important;
 }
 
 .leaflet-popup-tip {
-  background: hsl(240 8% 14%) !important;
+  background: hsl(225 18% 13%) !important;
 }
 
-/* Scrollbar styling */
+/* Scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
 }
-
 ::-webkit-scrollbar-track {
   background: transparent;
 }
-
 ::-webkit-scrollbar-thumb {
   background: hsl(var(--muted));
   border-radius: 3px;
 }
-
 ::-webkit-scrollbar-thumb:hover {
-  background: hsl(var(--gold) / 0.3);
+  background: hsl(var(--pink) / 0.3);
 }
