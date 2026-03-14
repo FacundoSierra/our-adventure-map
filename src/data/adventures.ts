@@ -12,72 +12,93 @@ export interface Destination {
   emoji?: string;
 }
 
+export interface RelationshipEvent {
+  id: string;
+  date: string;
+  title: string;
+  description: string;
+  emoji: string;
+  type: 'milestone' | 'custom';
+}
+
 export interface TimelineEvent {
   id: string;
   date: string;
   title: string;
   description: string;
   emoji: string;
+  source: 'trip' | 'milestone' | 'custom';
 }
 
-export const RELATIONSHIP_START = '2020-06-15';
+export const RELATIONSHIP_START = '2023-02-01';
+export const RELATIONSHIP_OFFICIAL = '2023-04-01';
+export const ANNIVERSARY_DAY = 2;
+export const ANNIVERSARY_MONTH = 3; // April (0-indexed)
 
-export const defaultDestinations: Destination[] = [
-  {
-    id: '1', city: 'París', country: 'Francia', type: 'visited',
-    lat: 48.8566, lng: 2.3522, date: '2021-09-10',
-    note: 'Nuestra primera escapada juntos. Cenamos bajo la Torre Eiffel.', emoji: '🗼',
-  },
-  {
-    id: '2', city: 'Roma', country: 'Italia', type: 'visited',
-    lat: 41.9028, lng: 12.4964, date: '2022-05-20',
-    note: 'Tiramos una moneda en la Fontana di Trevi.', emoji: '🏛️',
-  },
-  {
-    id: '3', city: 'Barcelona', country: 'España', type: 'visited',
-    lat: 41.3874, lng: 2.1686, date: '2020-12-31',
-    note: 'Nuestro primer Año Nuevo juntos.', emoji: '🎆',
-  },
-  {
-    id: '4', city: 'Ámsterdam', country: 'Países Bajos', type: 'visited',
-    lat: 52.3676, lng: 4.9041, date: '2023-03-14',
-    note: 'Bicicletas, tulipanes y muchas risas.', emoji: '🌷',
-  },
-  {
-    id: '5', city: 'Lisboa', country: 'Portugal', type: 'visited',
-    lat: 38.7223, lng: -9.1393, date: '2022-11-05',
-    note: 'Los pasteles de Belém más ricos del mundo.', emoji: '🍮',
-  },
-  {
-    id: '6', city: 'Tokio', country: 'Japón', type: 'wishlist',
-    lat: 35.6762, lng: 139.6503,
-    note: 'Algún día pasearemos por Shibuya juntos 🌸', emoji: '🗾',
-  },
-  {
-    id: '7', city: 'Santorini', country: 'Grecia', type: 'wishlist',
-    lat: 36.3932, lng: 25.4615,
-    note: 'Ver el atardecer más bonito del mundo, juntos.', emoji: '🌅',
-  },
-  {
-    id: '8', city: 'Nueva York', country: 'Estados Unidos', type: 'wishlist',
-    lat: 40.7128, lng: -74.006,
-    note: 'Central Park en otoño, ¡tiene que ser increíble!', emoji: '🗽',
-  },
-  {
-    id: '9', city: 'Bali', country: 'Indonesia', type: 'wishlist',
-    lat: -8.3405, lng: 115.092,
-    note: 'Templos, arrozales y paz interior juntos.', emoji: '🌴',
-  },
+/** Fixed milestones that always appear */
+export const fixedMilestones: RelationshipEvent[] = [
+  { id: 'ms-1', date: '2023-02-01', title: 'Empezó todo', description: 'El inicio de nuestra historia juntos.', emoji: '💫', type: 'milestone' },
+  { id: 'ms-2', date: '2023-04-01', title: 'Inicio de la relación', description: 'Oficialmente juntos.', emoji: '💕', type: 'milestone' },
 ];
 
-export const sampleTimeline: TimelineEvent[] = [
-  { id: 't1', date: '2020-06-15', title: 'Nos conocimos', description: 'El día que todo empezó.', emoji: '💫' },
-  { id: 't2', date: '2020-12-31', title: 'Primer Año Nuevo juntos', description: 'Barcelona, la playa y nuestro primer brindis.', emoji: '🎆' },
-  { id: 't3', date: '2021-06-15', title: 'Primer aniversario', description: 'Un año juntos. Solo el primero de muchos.', emoji: '🎂' },
-  { id: 't4', date: '2021-09-10', title: 'Primer viaje: París', description: 'La ciudad del amor para nuestra primera aventura.', emoji: '🗼' },
-  { id: 't5', date: '2022-05-20', title: 'Roma: La ciudad eterna', description: 'Gelato, historia y amor en cada esquina.', emoji: '🏛️' },
-  { id: 't6', date: '2023-03-14', title: 'Ámsterdam en primavera', description: 'Pedaleando entre canales y tulipanes.', emoji: '🌷' },
-];
+/** Generate anniversary events up to current year + 1 */
+export function generateAnniversaries(): RelationshipEvent[] {
+  const currentYear = new Date().getFullYear();
+  const startYear = 2024; // First anniversary year
+  const events: RelationshipEvent[] = [];
+  
+  for (let year = startYear; year <= currentYear + 1; year++) {
+    const num = year - 2023;
+    const ordinal = num === 1 ? 'Primer' : num === 2 ? 'Segundo' : num === 3 ? 'Tercer' : `${num}º`;
+    events.push({
+      id: `anniversary-${year}`,
+      date: `${year}-04-02`,
+      title: `${ordinal} aniversario`,
+      description: `${num} ${num === 1 ? 'año' : 'años'} juntos. ¡A por muchos más!`,
+      emoji: '🎂',
+      type: 'milestone',
+    });
+  }
+  return events;
+}
+
+/** Build the full timeline merging milestones, custom events, and visited trips */
+export function buildTimeline(destinations: Destination[], customEvents: RelationshipEvent[]): TimelineEvent[] {
+  const events: TimelineEvent[] = [];
+
+  // Add fixed milestones
+  fixedMilestones.forEach(m => {
+    events.push({ id: m.id, date: m.date, title: m.title, description: m.description, emoji: m.emoji, source: 'milestone' });
+  });
+
+  // Add auto-generated anniversaries
+  generateAnniversaries().forEach(a => {
+    events.push({ id: a.id, date: a.date, title: a.title, description: a.description, emoji: a.emoji, source: 'milestone' });
+  });
+
+  // Add custom user events
+  customEvents.forEach(e => {
+    events.push({ id: e.id, date: e.date, title: e.title, description: e.description, emoji: e.emoji, source: 'custom' });
+  });
+
+  // Add visited destinations as trips
+  destinations
+    .filter(d => d.type === 'visited' && d.date)
+    .forEach(d => {
+      events.push({
+        id: `trip-${d.id}`,
+        date: d.date!,
+        title: `Viaje a ${d.city}`,
+        description: d.note || `${d.city}, ${d.country}`,
+        emoji: d.emoji || '✈️',
+        source: 'trip',
+      });
+    });
+
+  // Sort chronologically
+  events.sort((a, b) => a.date.localeCompare(b.date));
+  return events;
+}
 
 export const romanticQuotes = [
   "Contigo el mundo es más bonito ✨",
