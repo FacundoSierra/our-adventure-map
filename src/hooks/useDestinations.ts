@@ -1,6 +1,5 @@
 import { useState, useCallback } from 'react';
 import type { Destination } from '@/data/adventures';
-import { defaultDestinations } from '@/data/adventures';
 
 const STORAGE_KEY = 'travel-destinations';
 
@@ -9,7 +8,7 @@ function loadDestinations(): Destination[] {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (stored) return JSON.parse(stored);
   } catch {}
-  return defaultDestinations;
+  return [];
 }
 
 function saveDestinations(destinations: Destination[]) {

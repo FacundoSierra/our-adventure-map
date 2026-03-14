@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import WelcomeScreen from '@/components/WelcomeScreen';
 import NavigationBar, { type Section } from '@/components/NavigationBar';
@@ -7,12 +7,19 @@ import Timeline from '@/components/Timeline';
 import TravelStats from '@/components/TravelStats';
 import MemoryAlbum from '@/components/MemoryAlbum';
 import { useDestinations } from '@/hooks/useDestinations';
-import { sampleTimeline } from '@/data/adventures';
+import { useCustomEvents } from '@/hooks/useCustomEvents';
+import { buildTimeline } from '@/data/adventures';
 
 const Index = () => {
   const [showWelcome, setShowWelcome] = useState(true);
   const [activeSection, setActiveSection] = useState<Section>('map');
   const { destinations, add, update, remove } = useDestinations();
+  const { events: customEvents, add: addEvent, update: updateEvent, remove: removeEvent } = useCustomEvents();
+
+  const timelineEvents = useMemo(
+    () => buildTimeline(destinations, customEvents),
+    [destinations, customEvents]
+  );
 
   if (showWelcome) {
     return (
@@ -24,13 +31,9 @@ const Index = () => {
 
   return (
     <div className="relative h-screen overflow-hidden">
-      {/* Mapa siempre visible de fondo */}
       <AdventureMap destinations={destinations} onAdd={add} onUpdate={update} onRemove={remove} />
-
-      {/* Navegación flotante */}
       <NavigationBar active={activeSection} onChange={setActiveSection} />
 
-      {/* Paneles overlay */}
       <AnimatePresence>
         {activeSection !== 'map' && (
           <motion.div
@@ -47,7 +50,14 @@ const Index = () => {
             >
               ✕
             </button>
-            {activeSection === 'timeline' && <Timeline events={sampleTimeline} />}
+            {activeSection === 'timeline' && (
+              <Timeline
+                events={timelineEvents}
+                onAddEvent={addEvent}
+                onUpdateEvent={updateEvent}
+                onRemoveEvent={removeEvent}
+              />
+            )}
             {activeSection === 'stats' && <TravelStats destinations={destinations} />}
             {activeSection === 'album' && <MemoryAlbum destinations={destinations} />}
           </motion.div>

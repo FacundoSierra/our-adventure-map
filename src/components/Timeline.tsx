@@ -1,12 +1,58 @@
-import { motion } from 'framer-motion';
-import { Sparkles } from 'lucide-react';
-import type { TimelineEvent } from '@/data/adventures';
+import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Sparkles, Plus, Edit2, Trash2, Plane, Heart, Star } from 'lucide-react';
+import type { TimelineEvent, RelationshipEvent } from '@/data/adventures';
+import EventForm from './EventForm';
 
 interface TimelineProps {
   events: TimelineEvent[];
+  onAddEvent: (event: Omit<RelationshipEvent, 'id' | 'type'>) => void;
+  onUpdateEvent: (id: string, data: Partial<RelationshipEvent>) => void;
+  onRemoveEvent: (id: string) => void;
 }
 
-const Timeline = ({ events }: TimelineProps) => {
+const sourceIcon = (source: TimelineEvent['source']) => {
+  switch (source) {
+    case 'trip': return <Plane size={12} />;
+    case 'milestone': return <Heart size={12} />;
+    case 'custom': return <Star size={12} />;
+  }
+};
+
+const sourceColor = (source: TimelineEvent['source']) => {
+  switch (source) {
+    case 'trip': return 'hsl(215 70% 55%)';
+    case 'milestone': return 'hsl(340 65% 60%)';
+    case 'custom': return 'hsl(280 50% 55%)';
+  }
+};
+
+const Timeline = ({ events, onAddEvent, onUpdateEvent, onRemoveEvent }: TimelineProps) => {
+  const [showForm, setShowForm] = useState(false);
+  const [editingEvent, setEditingEvent] = useState<TimelineEvent | null>(null);
+
+  const handleEdit = (event: TimelineEvent) => {
+    if (event.source === 'milestone') return; // Can't edit fixed milestones
+    setEditingEvent(event);
+    setShowForm(true);
+  };
+
+  const handleDelete = (event: TimelineEvent) => {
+    if (event.source === 'custom') {
+      onRemoveEvent(event.id);
+    }
+  };
+
+  const handleSubmit = (data: Omit<RelationshipEvent, 'id' | 'type'>) => {
+    if (editingEvent) {
+      onUpdateEvent(editingEvent.id, data);
+    } else {
+      onAddEvent(data);
+    }
+    setShowForm(false);
+    setEditingEvent(null);
+  };
+
   return (
     <div className="min-h-screen bg-background pt-8 md:pt-16 pb-28 px-4">
       <div className="max-w-2xl mx-auto">
@@ -30,46 +76,99 @@ const Timeline = ({ events }: TimelineProps) => {
             <br />
             <span className="text-pink-accent italic">guardado para siempre</span>
           </h2>
+          <p className="text-muted-foreground/60 text-sm mb-6">
+            Los viajes realizados aparecen automáticamente aquí
+          </p>
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => { setEditingEvent(null); setShowForm(true); }}
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary/90 text-primary-foreground text-sm font-medium shadow-lg hover:bg-primary transition-colors"
+          >
+            <Plus size={16} />
+            Añadir evento
+          </motion.button>
         </motion.div>
 
-        <div className="relative">
-          <div className="absolute left-5 md:left-1/2 top-0 bottom-0 w-px"
-            style={{ background: 'linear-gradient(to bottom, hsl(var(--pink) / 0.3), hsl(var(--blue) / 0.2), hsl(var(--pink) / 0.05))' }} />
+        {events.length === 0 ? (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="text-center py-20 text-muted-foreground/50"
+          >
+            <Heart size={40} className="mx-auto mb-4 opacity-30" />
+            <p className="text-sm">Vuestra historia aparecerá aquí</p>
+            <p className="text-xs mt-1">Añade eventos o viajes realizados para construirla</p>
+          </motion.div>
+        ) : (
+          <div className="relative">
+            <div className="absolute left-5 md:left-1/2 top-0 bottom-0 w-px"
+              style={{ background: 'linear-gradient(to bottom, hsl(var(--pink) / 0.3), hsl(var(--blue) / 0.2), hsl(var(--pink) / 0.05))' }} />
 
-          {events.map((event, i) => (
-            <motion.div
-              key={event.id}
-              initial={{ opacity: 0, y: 40 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: '-50px' }}
-              transition={{ delay: i * 0.1, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-              className={`relative flex items-start mb-8 md:mb-12 ${
-                i % 2 === 0 ? 'md:flex-row md:text-right' : 'md:flex-row-reverse md:text-left'
-              } flex-row`}
-            >
-              <div className="absolute left-5 md:left-1/2 -translate-x-1/2 z-10">
-                <div className="w-3 h-3 rounded-full gradient-pink-blue" />
-                <div className="absolute inset-0 w-3 h-3 rounded-full gradient-pink-blue animate-pulse-glow" />
-              </div>
+            {events.map((event, i) => (
+              <motion.div
+                key={event.id}
+                initial={{ opacity: 0, y: 40 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: '-50px' }}
+                transition={{ delay: i * 0.05, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+                className={`relative flex items-start mb-8 md:mb-12 ${
+                  i % 2 === 0 ? 'md:flex-row md:text-right' : 'md:flex-row-reverse md:text-left'
+                } flex-row`}
+              >
+                <div className="absolute left-5 md:left-1/2 -translate-x-1/2 z-10">
+                  <div className="w-3 h-3 rounded-full" style={{ background: sourceColor(event.source) }} />
+                  <div className="absolute inset-0 w-3 h-3 rounded-full animate-pulse-glow" style={{ background: sourceColor(event.source) }} />
+                </div>
 
-              <div className={`ml-12 md:ml-0 md:w-[44%] ${i % 2 === 0 ? 'md:mr-auto md:pr-10' : 'md:ml-auto md:pl-10'}`}>
-                <motion.div
-                  whileHover={{ y: -2 }}
-                  className="bg-card/60 backdrop-blur-sm rounded-2xl border border-border/40 p-5 transition-all duration-300 hover:border-primary/20 hover:shadow-lg"
-                  style={{ boxShadow: '0 4px 24px rgba(0,0,0,0.15)' }}
-                >
-                  <span className="text-2xl mb-2 block">{event.emoji}</span>
-                  <p className="text-[11px] text-primary/80 mb-1.5 font-medium tracking-widest uppercase">
-                    {new Date(event.date).toLocaleDateString('es-ES', { year: 'numeric', month: 'long' })}
-                  </p>
-                  <h3 className="font-display text-lg text-cream mb-1.5 leading-snug">{event.title}</h3>
-                  <p className="text-sm text-foreground/55 leading-relaxed">{event.description}</p>
-                </motion.div>
-              </div>
-            </motion.div>
-          ))}
-        </div>
+                <div className={`ml-12 md:ml-0 md:w-[44%] ${i % 2 === 0 ? 'md:mr-auto md:pr-10' : 'md:ml-auto md:pl-10'}`}>
+                  <motion.div
+                    whileHover={{ y: -2 }}
+                    className="group bg-card/60 backdrop-blur-sm rounded-2xl border border-border/40 p-5 transition-all duration-300 hover:border-primary/20 hover:shadow-lg relative"
+                    style={{ boxShadow: '0 4px 24px rgba(0,0,0,0.15)' }}
+                  >
+                    {/* Edit/delete for custom events only */}
+                    {event.source === 'custom' && (
+                      <div className={`absolute top-3 ${i % 2 === 0 ? 'md:left-3 right-3' : 'right-3'} flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity`}>
+                        <button onClick={() => handleEdit(event)} className="w-6 h-6 rounded-full bg-muted/60 flex items-center justify-center text-muted-foreground hover:text-secondary transition-colors">
+                          <Edit2 size={11} />
+                        </button>
+                        <button onClick={() => handleDelete(event)} className="w-6 h-6 rounded-full bg-muted/60 flex items-center justify-center text-muted-foreground hover:text-destructive transition-colors">
+                          <Trash2 size={11} />
+                        </button>
+                      </div>
+                    )}
+
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="text-2xl">{event.emoji}</span>
+                      <span className="flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full font-medium" style={{ background: sourceColor(event.source) + '20', color: sourceColor(event.source) }}>
+                        {sourceIcon(event.source)}
+                        {event.source === 'trip' ? 'Viaje' : event.source === 'milestone' ? 'Hito' : 'Evento'}
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-primary/80 mb-1.5 font-medium tracking-widest uppercase">
+                      {new Date(event.date).toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' })}
+                    </p>
+                    <h3 className="font-display text-lg text-cream mb-1.5 leading-snug">{event.title}</h3>
+                    <p className="text-sm text-foreground/55 leading-relaxed">{event.description}</p>
+                  </motion.div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        )}
       </div>
+
+      <AnimatePresence>
+        {showForm && (
+          <EventForm
+            defaults={editingEvent ? { title: editingEvent.title, date: editingEvent.date, description: editingEvent.description, emoji: editingEvent.emoji } : undefined}
+            editing={!!editingEvent}
+            onSubmit={handleSubmit}
+            onClose={() => { setShowForm(false); setEditingEvent(null); }}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 };
