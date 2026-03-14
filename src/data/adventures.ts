@@ -30,7 +30,7 @@ export interface TimelineEvent {
   source: 'trip' | 'event';
 }
 
-export const RELATIONSHIP_START = '2023-02-01';
+export const RELATIONSHIP_START = '2023-04-02';
 
 /** Generate default milestone events (called once on first load) */
 export function getDefaultEvents(): RelationshipEvent[] {
