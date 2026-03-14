@@ -39,8 +39,10 @@ export function getDefaultEvents(): RelationshipEvent[] {
   ];
 
   // Generate anniversaries up to current year + 1
-  const currentYear = new Date().getFullYear();
-  for (let year = 2023; year <= currentYear; year++) {
+  const now = new Date();
+  const currentYear = now.getFullYear();
+  const lastAnniversaryYear = (now.getMonth() > 3 || (now.getMonth() === 3 && now.getDate() >= 2)) ? currentYear : currentYear - 1;
+  for (let year = 2023; year <= lastAnniversaryYear; year++) {
     const num = year - 2022;
     const ordinal = num === 1 ? 'Primer' : num === 2 ? 'Segundo' : num === 3 ? 'Tercer' : num === 4 ? 'Cuarto' : `${num}º`;
     events.push({
