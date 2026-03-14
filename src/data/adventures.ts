@@ -27,27 +27,21 @@ export interface TimelineEvent {
   title: string;
   description: string;
   emoji: string;
-  source: 'trip' | 'milestone' | 'custom';
+  source: 'trip' | 'event';
 }
 
 export const RELATIONSHIP_START = '2023-02-01';
-export const RELATIONSHIP_OFFICIAL = '2023-04-01';
-export const ANNIVERSARY_DAY = 2;
-export const ANNIVERSARY_MONTH = 3; // April (0-indexed)
 
-/** Fixed milestones that always appear */
-export const fixedMilestones: RelationshipEvent[] = [
-  { id: 'ms-1', date: '2023-02-01', title: 'Empezó todo', description: 'El inicio de nuestra historia juntos.', emoji: '💫', type: 'milestone' },
-  { id: 'ms-2', date: '2023-04-01', title: 'Inicio de la relación', description: 'Oficialmente juntos.', emoji: '💕', type: 'milestone' },
-];
+/** Generate default milestone events (called once on first load) */
+export function getDefaultEvents(): RelationshipEvent[] {
+  const events: RelationshipEvent[] = [
+    { id: 'ms-1', date: '2023-02-01', title: 'Empezó todo', description: 'El inicio de nuestra historia juntos.', emoji: '💫', type: 'milestone' },
+    { id: 'ms-2', date: '2023-04-01', title: 'Inicio de la relación', description: 'Oficialmente juntos.', emoji: '💕', type: 'milestone' },
+  ];
 
-/** Generate anniversary events up to current year + 1 */
-export function generateAnniversaries(): RelationshipEvent[] {
+  // Generate anniversaries up to current year + 1
   const currentYear = new Date().getFullYear();
-  const startYear = 2024; // First anniversary year
-  const events: RelationshipEvent[] = [];
-  
-  for (let year = startYear; year <= currentYear + 1; year++) {
+  for (let year = 2024; year <= currentYear + 1; year++) {
     const num = year - 2023;
     const ordinal = num === 1 ? 'Primer' : num === 2 ? 'Segundo' : num === 3 ? 'Tercer' : `${num}º`;
     events.push({
@@ -59,26 +53,17 @@ export function generateAnniversaries(): RelationshipEvent[] {
       type: 'milestone',
     });
   }
+
   return events;
 }
 
-/** Build the full timeline merging milestones, custom events, and visited trips */
+/** Build the full timeline merging user events and visited trips */
 export function buildTimeline(destinations: Destination[], customEvents: RelationshipEvent[]): TimelineEvent[] {
   const events: TimelineEvent[] = [];
 
-  // Add fixed milestones
-  fixedMilestones.forEach(m => {
-    events.push({ id: m.id, date: m.date, title: m.title, description: m.description, emoji: m.emoji, source: 'milestone' });
-  });
-
-  // Add auto-generated anniversaries
-  generateAnniversaries().forEach(a => {
-    events.push({ id: a.id, date: a.date, title: a.title, description: a.description, emoji: a.emoji, source: 'milestone' });
-  });
-
-  // Add custom user events
+  // Add all user-managed events
   customEvents.forEach(e => {
-    events.push({ id: e.id, date: e.date, title: e.title, description: e.description, emoji: e.emoji, source: 'custom' });
+    events.push({ id: e.id, date: e.date, title: e.title, description: e.description, emoji: e.emoji, source: 'event' });
   });
 
   // Add visited destinations as trips
@@ -95,7 +80,6 @@ export function buildTimeline(destinations: Destination[], customEvents: Relatio
       });
     });
 
-  // Sort chronologically
   events.sort((a, b) => a.date.localeCompare(b.date));
   return events;
 }
