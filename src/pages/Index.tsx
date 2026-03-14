@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { AnimatePresence } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
 import WelcomeScreen from '@/components/WelcomeScreen';
 import NavigationBar, { type Section } from '@/components/NavigationBar';
 import AdventureMap from '@/components/AdventureMap';
