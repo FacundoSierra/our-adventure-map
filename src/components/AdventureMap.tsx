@@ -85,6 +85,9 @@ const AdventureMap = ({ destinations, onAdd, onUpdate, onRemove }: AdventureMapP
       zoomControl: false,
       attributionControl: false,
       minZoom: 2,
+      maxBounds: [[-85, -180], [85, 180]],
+      maxBoundsViscosity: 1.0,
+      worldCopyJump: false,
     });
 
     L.control.zoom({ position: 'topright' }).addTo(map);
