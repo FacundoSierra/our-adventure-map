@@ -40,7 +40,7 @@ export function getDefaultEvents(): RelationshipEvent[] {
 
   // Generate anniversaries up to current year + 1
   const currentYear = new Date().getFullYear();
-  for (let year = 2023; year <= currentYear + 1; year++) {
+  for (let year = 2023; year <= currentYear; year++) {
     const num = year - 2022;
     const ordinal = num === 1 ? 'Primer' : num === 2 ? 'Segundo' : num === 3 ? 'Tercer' : num === 4 ? 'Cuarto' : `${num}º`;
     events.push({
