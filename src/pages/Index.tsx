@@ -23,16 +23,36 @@ const Index = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="relative h-screen overflow-hidden">
+      {/* Mapa siempre visible de fondo */}
+      <AdventureMap destinations={destinations} onAdd={add} onUpdate={update} onRemove={remove} />
+
+      {/* Navegación flotante */}
       <NavigationBar active={activeSection} onChange={setActiveSection} />
-      <main className="md:pt-0">
-        {activeSection === 'map' && (
-          <AdventureMap destinations={destinations} onAdd={add} onUpdate={update} onRemove={remove} />
+
+      {/* Paneles overlay */}
+      <AnimatePresence>
+        {activeSection !== 'map' && (
+          <motion.div
+            key={activeSection}
+            initial={{ opacity: 0, y: 60 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 60 }}
+            transition={{ type: 'spring', damping: 28, stiffness: 300 }}
+            className="absolute inset-0 z-30 overflow-y-auto bg-card/90 backdrop-blur-xl"
+          >
+            <button
+              onClick={() => setActiveSection('map')}
+              className="sticky top-3 right-3 z-40 float-right mr-3 mt-3 w-8 h-8 rounded-full bg-muted/60 flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
+            >
+              ✕
+            </button>
+            {activeSection === 'timeline' && <Timeline events={sampleTimeline} />}
+            {activeSection === 'stats' && <TravelStats destinations={destinations} />}
+            {activeSection === 'album' && <MemoryAlbum destinations={destinations} />}
+          </motion.div>
         )}
-        {activeSection === 'timeline' && <Timeline events={sampleTimeline} />}
-        {activeSection === 'stats' && <TravelStats destinations={destinations} />}
-        {activeSection === 'album' && <MemoryAlbum destinations={destinations} />}
-      </main>
+      </AnimatePresence>
     </div>
   );
 };

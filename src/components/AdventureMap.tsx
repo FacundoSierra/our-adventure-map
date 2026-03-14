@@ -160,7 +160,7 @@ const AdventureMap = ({ destinations, onAdd, onUpdate, onRemove }: AdventureMapP
   }, {} as Record<string, Destination[]>);
 
   return (
-    <div className="relative w-full h-[calc(100vh-72px)] md:h-[calc(100vh-56px)]">
+    <div className="relative w-full h-full">
       <div ref={mapRef} className="w-full h-full" />
 
       {/* Legend */}
