@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, Plus, Edit2, Trash2, Plane, Heart, Star } from 'lucide-react';
+import { Sparkles, Plus, Edit2, Trash2, Plane, Heart } from 'lucide-react';
 import type { TimelineEvent, RelationshipEvent } from '@/data/adventures';
 import EventForm from './EventForm';
 
@@ -11,36 +11,22 @@ interface TimelineProps {
   onRemoveEvent: (id: string) => void;
 }
 
-const sourceIcon = (source: TimelineEvent['source']) => {
-  switch (source) {
-    case 'trip': return <Plane size={12} />;
-    case 'milestone': return <Heart size={12} />;
-    case 'custom': return <Star size={12} />;
-  }
-};
-
-const sourceColor = (source: TimelineEvent['source']) => {
-  switch (source) {
-    case 'trip': return 'hsl(215 70% 55%)';
-    case 'milestone': return 'hsl(340 65% 60%)';
-    case 'custom': return 'hsl(280 50% 55%)';
-  }
-};
+const sourceColor = (source: TimelineEvent['source']) =>
+  source === 'trip' ? 'hsl(215 70% 55%)' : 'hsl(340 65% 60%)';
 
 const Timeline = ({ events, onAddEvent, onUpdateEvent, onRemoveEvent }: TimelineProps) => {
   const [showForm, setShowForm] = useState(false);
   const [editingEvent, setEditingEvent] = useState<TimelineEvent | null>(null);
 
   const handleEdit = (event: TimelineEvent) => {
-    if (event.source === 'milestone') return; // Can't edit fixed milestones
+    if (event.source === 'trip') return; // Trips se editan desde el mapa
     setEditingEvent(event);
     setShowForm(true);
   };
 
   const handleDelete = (event: TimelineEvent) => {
-    if (event.source === 'custom') {
-      onRemoveEvent(event.id);
-    }
+    if (event.source === 'trip') return;
+    onRemoveEvent(event.id);
   };
 
   const handleSubmit = (data: Omit<RelationshipEvent, 'id' | 'type'>) => {
@@ -77,7 +63,7 @@ const Timeline = ({ events, onAddEvent, onUpdateEvent, onRemoveEvent }: Timeline
             <span className="text-pink-accent italic">guardado para siempre</span>
           </h2>
           <p className="text-muted-foreground/60 text-sm mb-6">
-            Los viajes realizados aparecen automáticamente aquí
+            Los viajes realizados aparecen automáticamente · Los eventos se pueden editar y borrar
           </p>
           <motion.button
             whileHover={{ scale: 1.05 }}
@@ -91,11 +77,7 @@ const Timeline = ({ events, onAddEvent, onUpdateEvent, onRemoveEvent }: Timeline
         </motion.div>
 
         {events.length === 0 ? (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="text-center py-20 text-muted-foreground/50"
-          >
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-20 text-muted-foreground/50">
             <Heart size={40} className="mx-auto mb-4 opacity-30" />
             <p className="text-sm">Vuestra historia aparecerá aquí</p>
             <p className="text-xs mt-1">Añade eventos o viajes realizados para construirla</p>
@@ -127,8 +109,8 @@ const Timeline = ({ events, onAddEvent, onUpdateEvent, onRemoveEvent }: Timeline
                     className="group bg-card/60 backdrop-blur-sm rounded-2xl border border-border/40 p-5 transition-all duration-300 hover:border-primary/20 hover:shadow-lg relative"
                     style={{ boxShadow: '0 4px 24px rgba(0,0,0,0.15)' }}
                   >
-                    {/* Edit/delete for custom events only */}
-                    {event.source === 'custom' && (
+                    {/* Edit/delete buttons — events only (trips are edited from the map) */}
+                    {event.source === 'event' && (
                       <div className={`absolute top-3 ${i % 2 === 0 ? 'md:left-3 right-3' : 'right-3'} flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity`}>
                         <button onClick={() => handleEdit(event)} className="w-6 h-6 rounded-full bg-muted/60 flex items-center justify-center text-muted-foreground hover:text-secondary transition-colors">
                           <Edit2 size={11} />
@@ -142,8 +124,7 @@ const Timeline = ({ events, onAddEvent, onUpdateEvent, onRemoveEvent }: Timeline
                     <div className="flex items-center gap-2 mb-2">
                       <span className="text-2xl">{event.emoji}</span>
                       <span className="flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full font-medium" style={{ background: sourceColor(event.source) + '20', color: sourceColor(event.source) }}>
-                        {sourceIcon(event.source)}
-                        {event.source === 'trip' ? 'Viaje' : event.source === 'milestone' ? 'Hito' : 'Evento'}
+                        {event.source === 'trip' ? <><Plane size={10} /> Viaje</> : <><Heart size={10} /> Evento</>}
                       </span>
                     </div>
                     <p className="text-[11px] text-primary/80 mb-1.5 font-medium tracking-widest uppercase">
