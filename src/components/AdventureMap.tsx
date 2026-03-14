@@ -2,36 +2,47 @@ import { useEffect, useRef, useState } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Star, Heart, MapPin, Sparkles } from 'lucide-react';
+import { X, Star, Sparkles } from 'lucide-react';
 import type { Place, PlaceCategory } from '@/data/adventures';
 
 interface AdventureMapProps {
   places: Place[];
 }
 
-const categoryConfig: Record<PlaceCategory, { color: string; label: string; icon: string }> = {
-  visited: { color: '#c5943a', label: 'Visitado', icon: '📍' },
-  dreamed: { color: '#b35e8a', label: 'Soñado', icon: '💭' },
-  special: { color: '#e8b34a', label: 'Especial', icon: '⭐' },
+const categoryConfig: Record<PlaceCategory, { color: string; glow: string; label: string; icon: string }> = {
+  visited: { color: '#c5943a', glow: 'rgba(197,148,58,0.4)', label: 'Visitado', icon: '📍' },
+  dreamed: { color: '#b35e8a', glow: 'rgba(179,94,138,0.4)', label: 'Soñado', icon: '💭' },
+  special: { color: '#e8b34a', glow: 'rgba(232,179,74,0.5)', label: 'Especial', icon: '⭐' },
 };
 
 const createMarkerIcon = (category: PlaceCategory, emoji?: string) => {
   const config = categoryConfig[category];
+  const isSpecial = category === 'special';
+  const size = isSpecial ? 44 : 38;
+  
   return L.divIcon({
-    className: 'custom-marker',
-    html: `<div style="
-      width: 36px; height: 36px;
+    className: 'custom-marker-icon',
+    html: `<div class="marker-pin marker-${category}" style="
+      width: ${size}px; height: ${size}px;
       border-radius: 50%;
-      background: ${config.color};
-      border: 2px solid rgba(255,255,255,0.3);
+      background: radial-gradient(circle at 35% 35%, ${config.color}ee, ${config.color}aa);
+      border: 2px solid rgba(255,255,255,0.25);
       display: flex; align-items: center; justify-content: center;
-      font-size: 16px;
-      box-shadow: 0 0 12px ${config.color}66;
+      font-size: ${isSpecial ? 20 : 17}px;
+      box-shadow: 0 0 16px ${config.glow}, 0 4px 12px rgba(0,0,0,0.3);
       cursor: pointer;
-      transition: transform 0.2s;
-    ">${emoji || config.icon}</div>`,
-    iconSize: [36, 36],
-    iconAnchor: [18, 18],
+      transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
+      position: relative;
+    ">
+      <span style="filter: drop-shadow(0 1px 2px rgba(0,0,0,0.3));">${emoji || config.icon}</span>
+      ${isSpecial ? `<div style="
+        position: absolute; inset: -4px; border-radius: 50%;
+        border: 1px solid ${config.color}44;
+        animation: marker-pulse 2s ease-in-out infinite;
+      "></div>` : ''}
+    </div>`,
+    iconSize: [size, size],
+    iconAnchor: [size / 2, size / 2],
   });
 };
 
@@ -44,11 +55,13 @@ const AdventureMap = ({ places }: AdventureMapProps) => {
     if (!mapRef.current || mapInstance.current) return;
 
     const map = L.map(mapRef.current, {
-      center: [30, 10],
+      center: [35, 10],
       zoom: 3,
-      zoomControl: true,
+      zoomControl: false,
       attributionControl: false,
     });
+
+    L.control.zoom({ position: 'topright' }).addTo(map);
 
     L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
       maxZoom: 19,
@@ -56,7 +69,6 @@ const AdventureMap = ({ places }: AdventureMapProps) => {
 
     mapInstance.current = map;
 
-    // Add markers with staggered animation
     places.forEach((place, index) => {
       setTimeout(() => {
         const marker = L.marker([place.lat, place.lng], {
@@ -64,10 +76,9 @@ const AdventureMap = ({ places }: AdventureMapProps) => {
         }).addTo(map);
 
         marker.on('click', () => setSelectedPlace(place));
-      }, index * 200);
+      }, 300 + index * 250);
     });
 
-    // Draw lines between visited places (sorted by date)
     const visited = places
       .filter((p) => p.category === 'visited' && p.date)
       .sort((a, b) => (a.date! > b.date! ? 1 : -1));
@@ -78,10 +89,10 @@ const AdventureMap = ({ places }: AdventureMapProps) => {
         L.polyline(latlngs, {
           color: '#c5943a',
           weight: 1.5,
-          opacity: 0.4,
-          dashArray: '8 8',
+          opacity: 0.3,
+          dashArray: '6 10',
         }).addTo(map);
-      }, places.length * 200 + 300);
+      }, places.length * 250 + 500);
     }
 
     return () => {
@@ -91,94 +102,113 @@ const AdventureMap = ({ places }: AdventureMapProps) => {
   }, [places]);
 
   return (
-    <div className="relative w-full h-[calc(100vh-120px)] md:h-[calc(100vh-56px)]">
-      <div ref={mapRef} className="w-full h-full rounded-none" />
+    <div className="relative w-full h-[calc(100vh-72px)] md:h-[calc(100vh-56px)]">
+      <div ref={mapRef} className="w-full h-full" />
 
       {/* Legend */}
-      <div className="absolute top-4 right-4 z-[1000] card-romantic p-3 text-sm space-y-2">
+      <motion.div 
+        initial={{ opacity: 0, x: 20 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ delay: 1 }}
+        className="absolute top-4 left-4 z-[1000] bg-card/80 backdrop-blur-xl rounded-2xl border border-border/50 p-3.5 text-sm space-y-2.5 shadow-2xl"
+      >
         {Object.entries(categoryConfig).map(([key, val]) => (
-          <div key={key} className="flex items-center gap-2">
+          <div key={key} className="flex items-center gap-2.5">
             <span
-              className="w-3 h-3 rounded-full"
-              style={{ background: val.color }}
+              className="w-3 h-3 rounded-full shadow-sm"
+              style={{ background: val.color, boxShadow: `0 0 8px ${val.glow}` }}
             />
-            <span className="text-cream text-xs">{val.label}</span>
+            <span className="text-cream/80 text-xs tracking-wide">{val.label}</span>
           </div>
         ))}
-      </div>
+      </motion.div>
 
-      {/* Place detail modal */}
+      {/* Place detail card */}
       <AnimatePresence>
         {selectedPlace && (
-          <motion.div
-            initial={{ opacity: 0, y: 100 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 100 }}
-            className="absolute bottom-4 left-4 right-4 md:left-auto md:right-4 md:w-96 z-[1000] card-romantic"
-          >
-            <button
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="absolute inset-0 z-[999] md:hidden"
               onClick={() => setSelectedPlace(null)}
-              className="absolute top-3 right-3 text-muted-foreground hover:text-foreground"
+            />
+            <motion.div
+              initial={{ opacity: 0, y: 80, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 80, scale: 0.95 }}
+              transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+              className="absolute bottom-20 left-3 right-3 md:bottom-6 md:left-auto md:right-6 md:w-[380px] z-[1000]
+                bg-card/95 backdrop-blur-xl rounded-2xl border border-border/50 p-5 shadow-2xl"
+              style={{ boxShadow: `0 0 40px ${categoryConfig[selectedPlace.category].glow}, 0 20px 60px rgba(0,0,0,0.5)` }}
             >
-              <X size={18} />
-            </button>
+              <button
+                onClick={() => setSelectedPlace(null)}
+                className="absolute top-4 right-4 w-7 h-7 rounded-full bg-muted/80 flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-all"
+              >
+                <X size={14} />
+              </button>
 
-            <div className="flex items-start gap-3 mb-3">
-              <span className="text-3xl">{selectedPlace.emoji || '📍'}</span>
-              <div>
-                <h3 className="font-display text-xl text-cream">
-                  {selectedPlace.name}
-                </h3>
-                <p className="text-muted-foreground text-sm">
-                  {selectedPlace.country}
-                </p>
+              <div className="flex items-start gap-4 mb-4">
+                <div className="w-12 h-12 rounded-2xl flex items-center justify-center text-2xl"
+                  style={{ background: categoryConfig[selectedPlace.category].color + '20' }}>
+                  {selectedPlace.emoji || '📍'}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-display text-xl text-cream leading-tight">
+                    {selectedPlace.name}
+                  </h3>
+                  <p className="text-muted-foreground text-sm">
+                    {selectedPlace.country}
+                  </p>
+                </div>
+                {selectedPlace.isFavorite && (
+                  <Star className="text-gold shrink-0" size={18} fill="currentColor" />
+                )}
               </div>
-              {selectedPlace.isFavorite && (
-                <Star className="text-gold ml-auto" size={18} fill="currentColor" />
-              )}
-            </div>
 
-            <div className="flex items-center gap-2 mb-3">
-              <span
-                className="text-xs px-2 py-0.5 rounded-full"
-                style={{
-                  background: categoryConfig[selectedPlace.category].color + '33',
-                  color: categoryConfig[selectedPlace.category].color,
-                }}
-              >
-                {categoryConfig[selectedPlace.category].label}
-              </span>
-              {selectedPlace.date && (
-                <span className="text-xs text-muted-foreground">
-                  {new Date(selectedPlace.date).toLocaleDateString('es-ES', {
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric',
-                  })}
+              <div className="flex items-center gap-2 mb-4">
+                <span
+                  className="text-xs px-3 py-1 rounded-full font-medium tracking-wide"
+                  style={{
+                    background: categoryConfig[selectedPlace.category].color + '20',
+                    color: categoryConfig[selectedPlace.category].color,
+                  }}
+                >
+                  {categoryConfig[selectedPlace.category].label}
                 </span>
-              )}
-            </div>
+                {selectedPlace.date && (
+                  <span className="text-xs text-muted-foreground">
+                    {new Date(selectedPlace.date).toLocaleDateString('es-ES', {
+                      year: 'numeric',
+                      month: 'long',
+                    })}
+                  </span>
+                )}
+              </div>
 
-            {selectedPlace.note && (
-              <p className="text-sm text-foreground/80 leading-relaxed mb-3">
-                {selectedPlace.note}
-              </p>
-            )}
-
-            {selectedPlace.surpriseMessage && (
-              <motion.div
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 0.5 }}
-                className="flex items-start gap-2 p-3 rounded-xl bg-muted border border-gold/20"
-              >
-                <Sparkles className="text-gold shrink-0 mt-0.5" size={16} />
-                <p className="text-sm text-gold-light italic">
-                  {selectedPlace.surpriseMessage}
+              {selectedPlace.note && (
+                <p className="text-sm text-foreground/75 leading-relaxed mb-4">
+                  {selectedPlace.note}
                 </p>
-              </motion.div>
-            )}
-          </motion.div>
+              )}
+
+              {selectedPlace.surpriseMessage && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.4 }}
+                  className="flex items-start gap-2.5 p-3.5 rounded-xl bg-muted/50 border border-gold/15"
+                >
+                  <Sparkles className="text-gold shrink-0 mt-0.5" size={15} />
+                  <p className="text-sm text-gold-light italic leading-relaxed">
+                    {selectedPlace.surpriseMessage}
+                  </p>
+                </motion.div>
+              )}
+            </motion.div>
+          </>
         )}
       </AnimatePresence>
     </div>
