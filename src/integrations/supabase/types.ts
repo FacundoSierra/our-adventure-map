@@ -14,7 +14,75 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      destinations: {
+        Row: {
+          city: string
+          country: string
+          created_at: string
+          date: string | null
+          emoji: string | null
+          id: string
+          lat: number
+          lng: number
+          note: string | null
+          type: Database["public"]["Enums"]["destination_type"]
+        }
+        Insert: {
+          city: string
+          country: string
+          created_at?: string
+          date?: string | null
+          emoji?: string | null
+          id?: string
+          lat?: number
+          lng?: number
+          note?: string | null
+          type?: Database["public"]["Enums"]["destination_type"]
+        }
+        Update: {
+          city?: string
+          country?: string
+          created_at?: string
+          date?: string | null
+          emoji?: string | null
+          id?: string
+          lat?: number
+          lng?: number
+          note?: string | null
+          type?: Database["public"]["Enums"]["destination_type"]
+        }
+        Relationships: []
+      }
+      relationship_events: {
+        Row: {
+          created_at: string
+          date: string
+          description: string
+          emoji: string
+          id: string
+          title: string
+          type: Database["public"]["Enums"]["event_type"]
+        }
+        Insert: {
+          created_at?: string
+          date: string
+          description?: string
+          emoji?: string
+          id?: string
+          title: string
+          type?: Database["public"]["Enums"]["event_type"]
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          description?: string
+          emoji?: string
+          id?: string
+          title?: string
+          type?: Database["public"]["Enums"]["event_type"]
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -23,7 +91,8 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      destination_type: "visited" | "wishlist"
+      event_type: "milestone" | "custom"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +219,9 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      destination_type: ["visited", "wishlist"],
+      event_type: ["milestone", "custom"],
+    },
   },
 } as const
