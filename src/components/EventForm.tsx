@@ -28,7 +28,7 @@ const EventForm = ({ defaults, editing, onSubmit, onClose }: EventFormProps) => 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim() || !date) return;
-    onSubmit({ title: title.trim(), date, description: description.trim(), emoji });
+    onSubmit({ title: title.trim(), date, description: description.trim(), emoji, type });
   };
 
   const inputClass = "w-full bg-muted/40 border border-border/40 rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/30 transition-all";
