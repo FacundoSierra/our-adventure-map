@@ -56,6 +56,10 @@ const Index = () => {
                 onAddEvent={addEvent}
                 onUpdateEvent={updateEvent}
                 onRemoveEvent={removeEvent}
+                destinations={destinations}
+                onAddDestination={add}
+                onUpdateDestination={update}
+                onRemoveDestination={remove}
               />
             )}
             {activeSection === 'stats' && <TravelStats destinations={destinations} />}

@@ -1,14 +1,20 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, Plus, Edit2, Trash2, Plane, Heart, PartyPopper, Star } from 'lucide-react';
-import type { TimelineEvent, RelationshipEvent } from '@/data/adventures';
+import { Sparkles, Plus, Edit2, Trash2, Plane, Heart, PartyPopper, Star, MapPin } from 'lucide-react';
+import type { TimelineEvent, RelationshipEvent, Destination } from '@/data/adventures';
 import EventForm from './EventForm';
+import DestinationForm from './DestinationForm';
 
 interface TimelineProps {
   events: TimelineEvent[];
   onAddEvent: (event: Omit<RelationshipEvent, 'id' | 'type'>) => void;
   onUpdateEvent: (id: string, data: Partial<RelationshipEvent>) => void;
   onRemoveEvent: (id: string) => void;
+  // Destination sync
+  destinations: Destination[];
+  onAddDestination: (dest: Omit<Destination, 'id'>) => void;
+  onUpdateDestination: (id: string, data: Partial<Destination>) => void;
+  onRemoveDestination: (id: string) => void;
 }
 
 const eventStyles: Record<string, { color: string; icon: React.ReactNode; label: string }> = {
@@ -25,29 +31,57 @@ function getStyle(event: TimelineEvent) {
   return eventStyles.custom;
 }
 
-const Timeline = ({ events, onAddEvent, onUpdateEvent, onRemoveEvent }: TimelineProps) => {
-  const [showForm, setShowForm] = useState(false);
+const Timeline = ({
+  events, onAddEvent, onUpdateEvent, onRemoveEvent,
+  destinations, onAddDestination, onUpdateDestination, onRemoveDestination,
+}: TimelineProps) => {
+  const [showEventForm, setShowEventForm] = useState(false);
+  const [showTripForm, setShowTripForm] = useState(false);
   const [editingEvent, setEditingEvent] = useState<TimelineEvent | null>(null);
+  const [editingTrip, setEditingTrip] = useState<Destination | null>(null);
 
-  const handleEdit = (event: TimelineEvent) => {
-    if (event.source === 'trip') return;
+  const handleEditEvent = (event: TimelineEvent) => {
+    if (event.source === 'trip') {
+      // Find the destination behind this trip
+      const destId = event.id.replace('trip-', '');
+      const dest = destinations.find(d => d.id === destId);
+      if (dest) {
+        setEditingTrip(dest);
+        setShowTripForm(true);
+      }
+      return;
+    }
     setEditingEvent(event);
-    setShowForm(true);
+    setShowEventForm(true);
   };
 
-  const handleDelete = (event: TimelineEvent) => {
-    if (event.source === 'trip') return;
+  const handleDeleteEvent = (event: TimelineEvent) => {
+    if (event.source === 'trip') {
+      const destId = event.id.replace('trip-', '');
+      onRemoveDestination(destId);
+      return;
+    }
     onRemoveEvent(event.id);
   };
 
-  const handleSubmit = (data: Omit<RelationshipEvent, 'id' | 'type'>) => {
+  const handleEventSubmit = (data: Omit<RelationshipEvent, 'id' | 'type'>) => {
     if (editingEvent) {
       onUpdateEvent(editingEvent.id, data);
     } else {
       onAddEvent(data);
     }
-    setShowForm(false);
+    setShowEventForm(false);
     setEditingEvent(null);
+  };
+
+  const handleTripSubmit = (data: Omit<Destination, 'id'>) => {
+    if (editingTrip) {
+      onUpdateDestination(editingTrip.id, data);
+    } else {
+      onAddDestination(data);
+    }
+    setShowTripForm(false);
+    setEditingTrip(null);
   };
 
   // Group events by year
@@ -57,6 +91,9 @@ const Timeline = ({ events, onAddEvent, onUpdateEvent, onRemoveEvent }: Timeline
     acc[year].push(event);
     return acc;
   }, {} as Record<string, TimelineEvent[]>);
+
+  const canEdit = (event: TimelineEvent) => event.source === 'event' || event.source === 'trip';
+  const isMilestone = (event: TimelineEvent) => event.eventType === 'milestone' || event.eventType === 'anniversary';
 
   return (
     <div className="min-h-screen bg-background pt-8 md:pt-16 pb-28 px-4">
@@ -82,7 +119,7 @@ const Timeline = ({ events, onAddEvent, onUpdateEvent, onRemoveEvent }: Timeline
             <span className="text-pink-accent italic">guardado para siempre</span>
           </h2>
           <p className="text-muted-foreground/50 text-sm mb-6 max-w-md mx-auto">
-            Los viajes realizados aparecen automáticamente · Los eventos se pueden editar y borrar
+            Los viajes y eventos están sincronizados con el mapa · Edita o borra desde cualquier sección
           </p>
 
           {/* Legend */}
@@ -95,22 +132,33 @@ const Timeline = ({ events, onAddEvent, onUpdateEvent, onRemoveEvent }: Timeline
             ))}
           </div>
 
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => { setEditingEvent(null); setShowForm(true); }}
-            className="inline-flex items-center gap-2 px-6 py-3 rounded-full gradient-pink-blue text-white text-sm font-medium shadow-lg glow-pink transition-all duration-300"
-          >
-            <Plus size={16} />
-            Añadir evento
-          </motion.button>
+          <div className="flex items-center justify-center gap-3 flex-wrap">
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => { setEditingEvent(null); setShowEventForm(true); }}
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full gradient-pink-blue text-white text-sm font-medium shadow-lg glow-pink transition-all duration-300"
+            >
+              <Plus size={16} />
+              Añadir evento
+            </motion.button>
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => { setEditingTrip(null); setShowTripForm(true); }}
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-secondary/20 border border-secondary/40 text-secondary text-sm font-medium shadow-lg hover:bg-secondary/30 transition-all duration-300"
+            >
+              <MapPin size={16} />
+              Añadir viaje
+            </motion.button>
+          </div>
         </motion.div>
 
         {events.length === 0 ? (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-20 text-muted-foreground/40">
             <Heart size={44} className="mx-auto mb-4 opacity-20" />
             <p className="text-sm font-display">Vuestra historia aparecerá aquí</p>
-            <p className="text-xs mt-2 text-muted-foreground/30">Añade eventos o viajes realizados para construirla</p>
+            <p className="text-xs mt-2 text-muted-foreground/30">Añade eventos o viajes para construirla</p>
           </motion.div>
         ) : (
           <div className="relative">
@@ -161,13 +209,13 @@ const Timeline = ({ events, onAddEvent, onUpdateEvent, onRemoveEvent }: Timeline
                           className="group glass-card-hover p-5 relative"
                           style={{ boxShadow: `0 4px 24px rgba(0,0,0,0.15), 0 0 0 1px ${style.color}10` }}
                         >
-                          {/* Edit/delete — events only */}
-                          {event.source === 'event' && (
+                          {/* Edit/delete — editable events and trips */}
+                          {canEdit(event) && !isMilestone(event) && (
                             <div className={`absolute top-3 ${globalIndex % 2 === 0 ? 'md:left-3 right-3' : 'right-3'} flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-300`}>
-                              <button onClick={() => handleEdit(event)} className="w-7 h-7 rounded-full bg-muted/60 flex items-center justify-center text-muted-foreground hover:text-secondary transition-colors">
+                              <button onClick={() => handleEditEvent(event)} className="w-7 h-7 rounded-full bg-muted/60 flex items-center justify-center text-muted-foreground hover:text-secondary transition-colors">
                                 <Edit2 size={12} />
                               </button>
-                              <button onClick={() => handleDelete(event)} className="w-7 h-7 rounded-full bg-muted/60 flex items-center justify-center text-muted-foreground hover:text-destructive transition-colors">
+                              <button onClick={() => handleDeleteEvent(event)} className="w-7 h-7 rounded-full bg-muted/60 flex items-center justify-center text-muted-foreground hover:text-destructive transition-colors">
                                 <Trash2 size={12} />
                               </button>
                             </div>
@@ -196,12 +244,23 @@ const Timeline = ({ events, onAddEvent, onUpdateEvent, onRemoveEvent }: Timeline
       </div>
 
       <AnimatePresence>
-        {showForm && (
+        {showEventForm && (
           <EventForm
             defaults={editingEvent ? { title: editingEvent.title, date: editingEvent.date, description: editingEvent.description, emoji: editingEvent.emoji } : undefined}
             editing={!!editingEvent}
-            onSubmit={handleSubmit}
-            onClose={() => { setShowForm(false); setEditingEvent(null); }}
+            onSubmit={handleEventSubmit}
+            onClose={() => { setShowEventForm(false); setEditingEvent(null); }}
+          />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showTripForm && (
+          <DestinationForm
+            defaults={editingTrip || {}}
+            editing={!!editingTrip}
+            onSubmit={handleTripSubmit}
+            onClose={() => { setShowTripForm(false); setEditingTrip(null); }}
           />
         )}
       </AnimatePresence>

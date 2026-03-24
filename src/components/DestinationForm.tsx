@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { X, MapPin } from 'lucide-react';
+import { X, MapPin, Search, Loader2 } from 'lucide-react';
 import type { Destination, DestinationType } from '@/data/adventures';
+import { geocodeCity, searchCities } from '@/lib/geocode';
 
 interface DestinationFormProps {
   defaults: Partial<Destination>;
@@ -17,8 +18,13 @@ const DestinationForm = ({ defaults, editing, onSubmit, onClose }: DestinationFo
   const [date, setDate] = useState(defaults.date || '');
   const [note, setNote] = useState(defaults.note || '');
   const [emoji, setEmoji] = useState(defaults.emoji || '');
-  const lat = defaults.lat || 0;
-  const lng = defaults.lng || 0;
+  const [lat, setLat] = useState(defaults.lat || 0);
+  const [lng, setLng] = useState(defaults.lng || 0);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [suggestions, setSuggestions] = useState<Array<{ city: string; country: string; lat: number; lng: number }>>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [geocoding, setGeocoding] = useState(false);
+  const debounceRef = useRef<ReturnType<typeof setTimeout>>();
 
   useEffect(() => {
     setCity(defaults.city || '');
@@ -27,17 +33,59 @@ const DestinationForm = ({ defaults, editing, onSubmit, onClose }: DestinationFo
     setDate(defaults.date || '');
     setNote(defaults.note || '');
     setEmoji(defaults.emoji || '');
+    setLat(defaults.lat || 0);
+    setLng(defaults.lng || 0);
   }, [defaults]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSearchChange = (value: string) => {
+    setSearchQuery(value);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    if (value.length < 2) {
+      setSuggestions([]);
+      setShowSuggestions(false);
+      return;
+    }
+    debounceRef.current = setTimeout(async () => {
+      const results = await searchCities(value);
+      setSuggestions(results);
+      setShowSuggestions(results.length > 0);
+    }, 400);
+  };
+
+  const handleSelectSuggestion = (s: { city: string; country: string; lat: number; lng: number }) => {
+    setCity(s.city);
+    setCountry(s.country);
+    setLat(s.lat);
+    setLng(s.lng);
+    setSearchQuery('');
+    setSuggestions([]);
+    setShowSuggestions(false);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!city.trim() || !country.trim()) return;
+
+    let finalLat = lat;
+    let finalLng = lng;
+
+    // Auto-geocode if no coordinates
+    if (!finalLat && !finalLng) {
+      setGeocoding(true);
+      const result = await geocodeCity(city.trim(), country.trim());
+      setGeocoding(false);
+      if (result) {
+        finalLat = result.lat;
+        finalLng = result.lng;
+      }
+    }
+
     onSubmit({
       city: city.trim(),
       country: country.trim(),
       type,
-      lat,
-      lng,
+      lat: finalLat,
+      lng: finalLng,
       date: date || undefined,
       note: note || undefined,
       emoji: emoji || undefined,
@@ -59,7 +107,7 @@ const DestinationForm = ({ defaults, editing, onSubmit, onClose }: DestinationFo
         animate={{ opacity: 1, y: 0, scale: 1 }}
         exit={{ opacity: 0, y: 40, scale: 0.95 }}
         transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-        className="relative w-full max-w-md bg-card/98 backdrop-blur-2xl rounded-3xl border border-border/40 p-6 shadow-2xl"
+        className="relative w-full max-w-md bg-card/98 backdrop-blur-2xl rounded-3xl border border-border/40 p-6 shadow-2xl max-h-[90vh] overflow-y-auto"
       >
         <button onClick={onClose} className="absolute top-4 right-4 w-8 h-8 rounded-full bg-muted/60 flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors">
           <X size={16} />
@@ -72,12 +120,41 @@ const DestinationForm = ({ defaults, editing, onSubmit, onClose }: DestinationFo
           <div>
             <h3 className="font-display text-lg text-cream">{editing ? 'Editar destino' : 'Nuevo destino'}</h3>
             <p className="text-xs text-muted-foreground">
-              {lat && lng ? `${lat.toFixed(2)}, ${lng.toFixed(2)}` : 'Completa la información'}
+              {lat && lng ? `📍 ${lat.toFixed(2)}, ${lng.toFixed(2)}` : 'Busca o escribe la ciudad'}
             </p>
           </div>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
+          {/* City search with autocomplete */}
+          <div className="relative">
+            <div className="relative">
+              <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground/50" />
+              <input
+                className={`${inputClass} pl-9`}
+                placeholder="Buscar ciudad..."
+                value={searchQuery}
+                onChange={e => handleSearchChange(e.target.value)}
+              />
+            </div>
+            {showSuggestions && (
+              <div className="absolute top-full left-0 right-0 mt-1 bg-card/98 backdrop-blur-xl border border-border/40 rounded-xl overflow-hidden shadow-xl z-10">
+                {suggestions.map((s, i) => (
+                  <button
+                    key={i}
+                    type="button"
+                    onClick={() => handleSelectSuggestion(s)}
+                    className="w-full text-left px-4 py-2.5 text-sm hover:bg-muted/40 transition-colors flex items-center gap-2"
+                  >
+                    <MapPin size={12} className="text-primary shrink-0" />
+                    <span className="text-cream">{s.city}</span>
+                    <span className="text-muted-foreground text-xs">{s.country}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
           <div className="grid grid-cols-2 gap-3">
             <input className={inputClass} placeholder="Ciudad *" value={city} onChange={e => setCity(e.target.value)} required />
             <input className={inputClass} placeholder="País *" value={country} onChange={e => setCountry(e.target.value)} required />
@@ -125,8 +202,10 @@ const DestinationForm = ({ defaults, editing, onSubmit, onClose }: DestinationFo
 
           <button
             type="submit"
-            className="w-full py-3.5 rounded-xl gradient-pink-blue text-white font-semibold text-sm shadow-lg hover:opacity-90 transition-opacity"
+            disabled={geocoding}
+            className="w-full py-3.5 rounded-xl gradient-pink-blue text-white font-semibold text-sm shadow-lg hover:opacity-90 transition-opacity disabled:opacity-60 flex items-center justify-center gap-2"
           >
+            {geocoding && <Loader2 size={16} className="animate-spin" />}
             {editing ? 'Guardar cambios' : 'Añadir destino'}
           </button>
         </form>
