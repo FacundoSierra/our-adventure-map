@@ -1,57 +1,81 @@
-import { useState, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 import type { RelationshipEvent } from '@/data/adventures';
-import { getDefaultEvents } from '@/data/adventures';
-
-const STORAGE_KEY = 'relationship-custom-events';
-const SEED_VERSION_KEY = 'relationship-events-seed-version';
-const CURRENT_SEED_VERSION = '3'; // Bump to force re-seed with corrected dates
-
-function load(): RelationshipEvent[] {
-  try {
-    const version = localStorage.getItem(SEED_VERSION_KEY);
-    if (version === CURRENT_SEED_VERSION) {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored) return JSON.parse(stored);
-    }
-  } catch {}
-
-  // Seed with defaults (first time or version mismatch)
-  const defaults = getDefaultEvents();
-  localStorage.setItem(SEED_VERSION_KEY, CURRENT_SEED_VERSION);
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(defaults));
-  return defaults;
-}
-
-function save(events: RelationshipEvent[]) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(events));
-}
 
 export function useCustomEvents() {
-  const [events, setEvents] = useState<RelationshipEvent[]>(load);
+  const [events, setEvents] = useState<RelationshipEvent[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const add = useCallback((event: Omit<RelationshipEvent, 'id' | 'type'>) => {
-    setEvents(prev => {
-      const next = [...prev, { ...event, id: crypto.randomUUID(), type: 'custom' as const }];
-      save(next);
-      return next;
-    });
+  useEffect(() => {
+    const fetch = async () => {
+      const { data, error } = await supabase
+        .from('relationship_events')
+        .select('*')
+        .order('date', { ascending: true });
+      if (!error && data) {
+        setEvents(data.map(e => ({
+          id: e.id,
+          date: e.date,
+          title: e.title,
+          description: e.description,
+          emoji: e.emoji,
+          type: e.type as RelationshipEvent['type'],
+        })));
+      }
+      setLoading(false);
+    };
+    fetch();
   }, []);
 
-  const update = useCallback((id: string, data: Partial<RelationshipEvent>) => {
-    setEvents(prev => {
-      const next = prev.map(e => e.id === id ? { ...e, ...data } : e);
-      save(next);
-      return next;
-    });
+  const add = useCallback(async (event: Omit<RelationshipEvent, 'id' | 'type'>) => {
+    const { data, error } = await supabase
+      .from('relationship_events')
+      .insert({
+        date: event.date,
+        title: event.title,
+        description: event.description,
+        emoji: event.emoji,
+        type: 'custom',
+      })
+      .select()
+      .single();
+    if (!error && data) {
+      setEvents(prev => [...prev, {
+        id: data.id,
+        date: data.date,
+        title: data.title,
+        description: data.description,
+        emoji: data.emoji,
+        type: data.type as RelationshipEvent['type'],
+      }]);
+    }
   }, []);
 
-  const remove = useCallback((id: string) => {
-    setEvents(prev => {
-      const next = prev.filter(e => e.id !== id);
-      save(next);
-      return next;
-    });
+  const update = useCallback(async (id: string, updates: Partial<RelationshipEvent>) => {
+    const dbUpdates: Record<string, any> = {};
+    if (updates.date !== undefined) dbUpdates.date = updates.date;
+    if (updates.title !== undefined) dbUpdates.title = updates.title;
+    if (updates.description !== undefined) dbUpdates.description = updates.description;
+    if (updates.emoji !== undefined) dbUpdates.emoji = updates.emoji;
+
+    const { error } = await supabase
+      .from('relationship_events')
+      .update(dbUpdates)
+      .eq('id', id);
+    if (!error) {
+      setEvents(prev => prev.map(e => e.id === id ? { ...e, ...updates } : e));
+    }
   }, []);
 
-  return { events, add, update, remove };
+  const remove = useCallback(async (id: string) => {
+    const { error } = await supabase
+      .from('relationship_events')
+      .delete()
+      .eq('id', id);
+    if (!error) {
+      setEvents(prev => prev.filter(e => e.id !== id));
+    }
+  }, []);
+
+  return { events, add, update, remove, loading };
 }
