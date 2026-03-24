@@ -6,7 +6,7 @@ import type { RelationshipEvent } from '@/data/adventures';
 interface EventFormProps {
   defaults?: Partial<RelationshipEvent>;
   editing: boolean;
-  onSubmit: (data: Omit<RelationshipEvent, 'id' | 'type'>) => void;
+  onSubmit: (data: Omit<RelationshipEvent, 'id'>) => void;
   onClose: () => void;
 }
 
@@ -15,18 +15,20 @@ const EventForm = ({ defaults, editing, onSubmit, onClose }: EventFormProps) => 
   const [date, setDate] = useState(defaults?.date || '');
   const [description, setDescription] = useState(defaults?.description || '');
   const [emoji, setEmoji] = useState(defaults?.emoji || '💫');
+  const [type, setType] = useState<'custom' | 'milestone'>(defaults?.type === 'milestone' ? 'milestone' : 'custom');
 
   useEffect(() => {
     setTitle(defaults?.title || '');
     setDate(defaults?.date || '');
     setDescription(defaults?.description || '');
     setEmoji(defaults?.emoji || '💫');
+    setType(defaults?.type === 'milestone' ? 'milestone' : 'custom');
   }, [defaults]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim() || !date) return;
-    onSubmit({ title: title.trim(), date, description: description.trim(), emoji });
+    onSubmit({ title: title.trim(), date, description: description.trim(), emoji, type });
   };
 
   const inputClass = "w-full bg-muted/40 border border-border/40 rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/30 transition-all";
@@ -61,6 +63,32 @@ const EventForm = ({ defaults, editing, onSubmit, onClose }: EventFormProps) => 
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Type selector */}
+          <div className="flex gap-3">
+            <button
+              type="button"
+              onClick={() => setType('custom')}
+              className={`flex-1 py-2.5 rounded-xl text-sm font-medium border transition-all ${
+                type === 'custom'
+                  ? 'gradient-pink-blue text-white border-transparent shadow-lg'
+                  : 'bg-muted/30 border-border/40 text-muted-foreground hover:border-primary/30'
+              }`}
+            >
+              ⭐ Evento
+            </button>
+            <button
+              type="button"
+              onClick={() => setType('milestone')}
+              className={`flex-1 py-2.5 rounded-xl text-sm font-medium border transition-all ${
+                type === 'milestone'
+                  ? 'gradient-pink-blue text-white border-transparent shadow-lg'
+                  : 'bg-muted/30 border-border/40 text-muted-foreground hover:border-primary/30'
+              }`}
+            >
+              ❤️ Hito
+            </button>
+          </div>
+
           <input className={inputClass} placeholder="Título del evento *" value={title} onChange={e => setTitle(e.target.value)} required />
           
           <div className="grid grid-cols-3 gap-3">
