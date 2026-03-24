@@ -64,7 +64,7 @@ const Timeline = ({
     onRemoveEvent(event.id);
   };
 
-  const handleEventSubmit = (data: Omit<RelationshipEvent, 'id' | 'type'>) => {
+  const handleEventSubmit = (data: Omit<RelationshipEvent, 'id'>) => {
     if (editingEvent) {
       onUpdateEvent(editingEvent.id, data);
     } else {

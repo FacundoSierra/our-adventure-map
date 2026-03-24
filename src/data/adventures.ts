@@ -65,6 +65,7 @@ export function getDefaultEvents(): RelationshipEvent[] {
 /** Determine sub-type for timeline events */
 function getEventType(e: RelationshipEvent): 'milestone' | 'anniversary' | 'custom' {
   if (e.id.startsWith('anniversary-')) return 'anniversary';
+  if (e.title.toLowerCase().includes('aniversario')) return 'anniversary';
   if (e.type === 'milestone') return 'milestone';
   return 'custom';
 }

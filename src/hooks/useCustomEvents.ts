@@ -27,7 +27,7 @@ export function useCustomEvents() {
     fetch();
   }, []);
 
-  const add = useCallback(async (event: Omit<RelationshipEvent, 'id' | 'type'>) => {
+  const add = useCallback(async (event: Omit<RelationshipEvent, 'id'>) => {
     const { data, error } = await supabase
       .from('relationship_events')
       .insert({
@@ -35,7 +35,7 @@ export function useCustomEvents() {
         title: event.title,
         description: event.description,
         emoji: event.emoji,
-        type: 'custom',
+        type: event.type || 'custom',
       })
       .select()
       .single();

@@ -63,6 +63,32 @@ const EventForm = ({ defaults, editing, onSubmit, onClose }: EventFormProps) => 
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Type selector */}
+          <div className="flex gap-3">
+            <button
+              type="button"
+              onClick={() => setType('custom')}
+              className={`flex-1 py-2.5 rounded-xl text-sm font-medium border transition-all ${
+                type === 'custom'
+                  ? 'gradient-pink-blue text-white border-transparent shadow-lg'
+                  : 'bg-muted/30 border-border/40 text-muted-foreground hover:border-primary/30'
+              }`}
+            >
+              ⭐ Evento
+            </button>
+            <button
+              type="button"
+              onClick={() => setType('milestone')}
+              className={`flex-1 py-2.5 rounded-xl text-sm font-medium border transition-all ${
+                type === 'milestone'
+                  ? 'gradient-pink-blue text-white border-transparent shadow-lg'
+                  : 'bg-muted/30 border-border/40 text-muted-foreground hover:border-primary/30'
+              }`}
+            >
+              ❤️ Hito
+            </button>
+          </div>
+
           <input className={inputClass} placeholder="Título del evento *" value={title} onChange={e => setTitle(e.target.value)} required />
           
           <div className="grid grid-cols-3 gap-3">
