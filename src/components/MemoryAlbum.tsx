@@ -1,7 +1,8 @@
-import { motion } from 'framer-motion';
-import { Star, Sparkles, Heart } from 'lucide-react';
+import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Star, Sparkles, Heart, Camera, Quote } from 'lucide-react';
 import type { Destination } from '@/data/adventures';
-import { romanticQuotes } from '@/data/adventures';
+import { romanticQuotes, surpriseMessages } from '@/data/adventures';
 
 interface MemoryAlbumProps {
   destinations: Destination[];
@@ -10,57 +11,88 @@ interface MemoryAlbumProps {
 const MemoryAlbum = ({ destinations }: MemoryAlbumProps) => {
   const visited = destinations.filter(d => d.type === 'visited');
   const wishlist = destinations.filter(d => d.type === 'wishlist');
-  const randomQuote = romanticQuotes[Math.floor(Math.random() * romanticQuotes.length)];
+  const [randomQuote] = useState(() => romanticQuotes[Math.floor(Math.random() * romanticQuotes.length)]);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
 
   return (
     <div className="min-h-screen bg-background pt-8 md:pt-16 pb-28 px-4">
       <div className="max-w-2xl mx-auto">
         <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }} className="text-center mb-12">
+          <div className="section-badge">
+            <Sparkles size={14} className="text-primary" />
+            <span className="text-xs text-primary tracking-widest uppercase font-medium">Recuerdos</span>
+          </div>
           <h2 className="text-3xl md:text-5xl font-display text-cream mb-3 tracking-tight">
             Álbum de <span className="text-pink-accent italic">Recuerdos</span>
           </h2>
-          <p className="text-muted-foreground/60 text-sm">Nuestro diario de aventuras juntos 📖</p>
+          <p className="text-muted-foreground/50 text-sm">Nuestro diario de aventuras juntos 📖</p>
         </motion.div>
 
-        <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.3, duration: 0.6 }} className="text-center mb-12">
-          <div className="inline-flex items-center gap-2.5 px-6 py-3 rounded-full bg-primary/5 border border-primary/10">
-            <Sparkles className="text-primary/60" size={14} />
-            <span className="text-sm text-pink-light/70 italic font-display">{randomQuote}</span>
+        {/* Romantic quote card */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.3, duration: 0.6 }}
+          className="text-center mb-12"
+        >
+          <div className="inline-flex items-center gap-3 px-6 py-4 rounded-2xl glass-card">
+            <Quote className="text-primary/40 shrink-0" size={16} />
+            <span className="text-sm text-primary/60 italic font-display">{randomQuote}</span>
           </div>
         </motion.div>
 
-        {/* Visited */}
+        {/* Visited memories */}
         {visited.length > 0 && (
-          <div className="mb-10">
-            <h3 className="text-xs font-semibold uppercase tracking-widest text-secondary mb-4 px-1 flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-secondary" /> Lugares visitados
+          <div className="mb-12">
+            <h3 className="text-xs font-semibold uppercase tracking-widest text-secondary/80 mb-5 px-1 flex items-center gap-2">
+              <span className="w-2.5 h-2.5 rounded-full bg-secondary" /> Nuestros viajes
             </h3>
-            <div className="space-y-3">
+            <div className="space-y-4">
               {visited.map((dest, i) => (
                 <motion.div
                   key={dest.id}
                   initial={{ opacity: 0, y: 30 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true, margin: '-30px' }}
-                  transition={{ delay: i * 0.08, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-                  whileHover={{ y: -2 }}
-                  className="bg-card/50 backdrop-blur-sm rounded-2xl border border-border/30 p-5 md:p-6 transition-all duration-300 hover:border-secondary/20"
-                  style={{ boxShadow: '0 4px 24px rgba(0,0,0,0.1)' }}
+                  transition={{ delay: i * 0.06, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+                  whileHover={{ y: -3 }}
+                  onClick={() => setExpandedId(expandedId === dest.id ? null : dest.id)}
+                  className="glass-card-hover p-5 md:p-6 cursor-pointer"
                 >
                   <div className="flex items-start gap-4">
-                    <div className="w-12 h-12 rounded-2xl bg-secondary/10 flex items-center justify-center text-2xl shrink-0">
+                    <div className="w-14 h-14 rounded-2xl bg-secondary/10 flex items-center justify-center text-2xl shrink-0 border border-secondary/10">
                       {dest.emoji || '📍'}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <h3 className="font-display text-lg md:text-xl text-cream leading-tight truncate">
-                        {dest.city}<span className="text-muted-foreground font-body text-sm">, {dest.country}</span>
-                      </h3>
+                      <div className="flex items-center gap-2 mb-1">
+                        <h3 className="font-display text-lg md:text-xl text-cream leading-tight truncate">
+                          {dest.city}
+                        </h3>
+                        <span className="text-muted-foreground/40 text-sm">{dest.country}</span>
+                      </div>
                       {dest.date && (
-                        <p className="text-[11px] text-secondary/60 mb-2.5 tracking-widest uppercase font-medium">
+                        <p className="text-[11px] text-secondary/50 mb-2 tracking-widest uppercase font-medium">
                           {new Date(dest.date).toLocaleDateString('es-ES', { year: 'numeric', month: 'long' })}
                         </p>
                       )}
-                      {dest.note && <p className="text-sm text-foreground/55 leading-relaxed">{dest.note}</p>}
+                      {dest.note && <p className="text-sm text-foreground/50 leading-relaxed">{dest.note}</p>}
+
+                      <AnimatePresence>
+                        {expandedId === dest.id && (
+                          <motion.div
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: 'auto' }}
+                            exit={{ opacity: 0, height: 0 }}
+                            transition={{ duration: 0.3 }}
+                            className="mt-4 pt-4 border-t border-border/20"
+                          >
+                            <div className="flex items-center gap-2 text-muted-foreground/40 text-xs">
+                              <Camera size={14} />
+                              <span>Espacio para fotos próximamente</span>
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
                     </div>
                   </div>
                 </motion.div>
@@ -71,9 +103,9 @@ const MemoryAlbum = ({ destinations }: MemoryAlbumProps) => {
 
         {/* Wishlist */}
         {wishlist.length > 0 && (
-          <div>
-            <h3 className="text-xs font-semibold uppercase tracking-widest text-primary mb-4 px-1 flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-primary" /> Queremos visitar
+          <div className="mb-10">
+            <h3 className="text-xs font-semibold uppercase tracking-widest text-primary/80 mb-5 px-1 flex items-center gap-2">
+              <span className="w-2.5 h-2.5 rounded-full bg-primary" /> Queremos visitar
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {wishlist.map((dest, i) => (
@@ -82,10 +114,9 @@ const MemoryAlbum = ({ destinations }: MemoryAlbumProps) => {
                   initial={{ opacity: 0, y: 30 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
-                  transition={{ delay: i * 0.1, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-                  whileHover={{ y: -4, scale: 1.01 }}
-                  className="bg-card/50 backdrop-blur-sm rounded-2xl border border-border/30 p-5 cursor-pointer transition-all duration-300 hover:border-primary/20 group"
-                  style={{ boxShadow: '0 4px 24px rgba(0,0,0,0.1)' }}
+                  transition={{ delay: i * 0.08, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+                  whileHover={{ y: -4, scale: 1.02 }}
+                  className="glass-card-hover p-5 cursor-pointer group"
                 >
                   <div className="flex items-start gap-3 mb-2">
                     <span className="text-xl">{dest.emoji || '💭'}</span>
@@ -93,11 +124,20 @@ const MemoryAlbum = ({ destinations }: MemoryAlbumProps) => {
                       {dest.city}, {dest.country}
                     </h4>
                   </div>
-                  {dest.note && <p className="text-sm text-foreground/50 leading-relaxed pl-8">{dest.note}</p>}
+                  {dest.note && <p className="text-sm text-foreground/40 leading-relaxed pl-8">{dest.note}</p>}
                 </motion.div>
               ))}
             </div>
           </div>
+        )}
+
+        {/* Empty state */}
+        {visited.length === 0 && wishlist.length === 0 && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-20 text-muted-foreground/40">
+            <Heart size={44} className="mx-auto mb-4 opacity-20" />
+            <p className="text-sm font-display">Vuestros recuerdos aparecerán aquí</p>
+            <p className="text-xs mt-2 text-muted-foreground/30">Añade viajes desde el mapa para empezar</p>
+          </motion.div>
         )}
       </div>
     </div>
