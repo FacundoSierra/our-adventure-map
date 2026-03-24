@@ -1,42 +1,33 @@
 
 
-## Plan: Migrar datos de localStorage a Lovable Cloud (base de datos)
+## Plan: Añadir selector de tipo al formulario de eventos y corregir etiqueta de aniversarios
 
-### Problema
-Actualmente todos los destinos y eventos se guardan en `localStorage`, lo que significa que se pierden al cambiar de navegador/dispositivo y pueden variar entre sesiones. Queremos que los datos sean permanentes y consistentes.
+### Problema 1: No se puede elegir tipo de evento
+El formulario `EventForm` siempre guarda como `type: 'custom'`. El usuario quiere poder elegir entre "Evento" y "Hito" al crear/editar. Los aniversarios NO deben ser creables manualmente (se generan automáticamente cada 2 de abril).
+
+### Problema 2: Aniversarios muestran "Hito" en vez de "Aniversario"
+En `adventures.ts`, los aniversarios generados automáticamente tienen `type: 'milestone'`, pero la función `getEventType` los detecta por `id.startsWith('anniversary-')`. El problema es que los aniversarios de la BD tienen UUIDs, no IDs con prefijo `anniversary-`. Hay que usar el título o una lógica diferente para identificarlos.
 
 ### Cambios
 
-**1. Crear tablas en la base de datos**
+**1. `src/components/EventForm.tsx`**
+- Añadir un selector (radio o select) con dos opciones: "Evento personalizado" y "Hito importante"
+- Pasar el `type` elegido en el `onSubmit` (cambiar la interfaz para incluir `type`)
+- Cuando se edita, preseleccionar el tipo actual
 
-Dos tablas sin autenticación (acceso público por ahora, se puede añadir auth después):
+**2. `src/hooks/useCustomEvents.ts`**
+- Modificar la función `add` para aceptar el `type` del evento (`milestone` o `custom`) en lugar de hardcodear `'custom'`
 
-- **`destinations`**: `id` (uuid PK), `city`, `country`, `type` (visited/wishlist), `lat`, `lng`, `date`, `note`, `emoji`, `created_at`
-- **`relationship_events`**: `id` (uuid PK), `date`, `title`, `description`, `emoji`, `type` (milestone/custom), `created_at`
+**3. `src/data/adventures.ts`**
+- En `getEventType`: detectar aniversarios por título (contiene "aniversario") en vez de por prefijo de ID, ya que los de BD usan UUID
+- Los aniversarios generados dinámicamente por `getDefaultEvents` ya no se guardan en BD (se calculan en runtime), así que mantener la detección por ID para esos
 
-RLS desactivado o con política permisiva (SELECT/INSERT/UPDATE/DELETE para todos) ya que no hay autenticación implementada. Se podrá restringir después al añadir auth.
+**4. `src/components/Timeline.tsx`**
+- Actualizar `onAddEvent` para pasar el tipo seleccionado
 
-Insertar los hitos por defecto (Empezó todo, Inicio relación, aniversarios hasta la fecha) como seed en la tabla `relationship_events`.
-
-**2. Reescribir `useDestinations.ts`**
-
-- Reemplazar localStorage por queries a la tabla `destinations` usando el cliente Supabase
-- `useState` + `useEffect` para cargar datos al montar
-- `add`/`update`/`remove` hacen operaciones contra la BD y actualizan el estado local
-
-**3. Reescribir `useCustomEvents.ts`**
-
-- Reemplazar localStorage por queries a la tabla `relationship_events`
-- Eliminar la lógica de seed version / localStorage
-- Los hitos base ya estarán en la BD desde la migración inicial
-- Los aniversarios se siguen generando dinámicamente en `buildTimeline` (no se guardan en BD, se calculan en runtime)
-
-**4. Sin cambios en componentes**
-
-Los componentes (`AdventureMap`, `Timeline`, `TravelStats`, `MemoryAlbum`, `Index`) no necesitan cambios ya que consumen los hooks que mantendrán la misma interfaz (`destinations`, `add`, `update`, `remove`).
-
-### Archivos afectados
-- Nueva migración SQL (2 tablas + seed de eventos base)
-- `src/hooks/useDestinations.ts` — reescribir con Supabase
-- `src/hooks/useCustomEvents.ts` — reescribir con Supabase
+### Archivos a modificar
+- `src/components/EventForm.tsx` — añadir selector de tipo (evento/hito)
+- `src/hooks/useCustomEvents.ts` — aceptar tipo en `add`
+- `src/data/adventures.ts` — mejorar detección de aniversarios en `getEventType`
+- `src/components/Timeline.tsx` — pasar tipo al crear evento
 
