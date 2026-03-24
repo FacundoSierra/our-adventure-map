@@ -15,12 +15,14 @@ const EventForm = ({ defaults, editing, onSubmit, onClose }: EventFormProps) => 
   const [date, setDate] = useState(defaults?.date || '');
   const [description, setDescription] = useState(defaults?.description || '');
   const [emoji, setEmoji] = useState(defaults?.emoji || '💫');
+  const [type, setType] = useState<'custom' | 'milestone'>(defaults?.type === 'milestone' ? 'milestone' : 'custom');
 
   useEffect(() => {
     setTitle(defaults?.title || '');
     setDate(defaults?.date || '');
     setDescription(defaults?.description || '');
     setEmoji(defaults?.emoji || '💫');
+    setType(defaults?.type === 'milestone' ? 'milestone' : 'custom');
   }, [defaults]);
 
   const handleSubmit = (e: React.FormEvent) => {
