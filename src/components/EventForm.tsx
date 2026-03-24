@@ -6,7 +6,7 @@ import type { RelationshipEvent } from '@/data/adventures';
 interface EventFormProps {
   defaults?: Partial<RelationshipEvent>;
   editing: boolean;
-  onSubmit: (data: Omit<RelationshipEvent, 'id' | 'type'>) => void;
+  onSubmit: (data: Omit<RelationshipEvent, 'id'>) => void;
   onClose: () => void;
 }
 
