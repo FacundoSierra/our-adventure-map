@@ -7,7 +7,7 @@ import DestinationForm from './DestinationForm';
 
 interface TimelineProps {
   events: TimelineEvent[];
-  onAddEvent: (event: Omit<RelationshipEvent, 'id' | 'type'>) => void;
+  onAddEvent: (event: Omit<RelationshipEvent, 'id'>) => void;
   onUpdateEvent: (id: string, data: Partial<RelationshipEvent>) => void;
   onRemoveEvent: (id: string) => void;
   // Destination sync
