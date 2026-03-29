@@ -10,6 +10,8 @@ export interface Destination {
   date?: string;
   note?: string;
   emoji?: string;
+  images?: string[];
+  coverImage?: string;
 }
 
 export interface RelationshipEvent {

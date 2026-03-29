@@ -6,13 +6,19 @@ import AdventureMap from '@/components/AdventureMap';
 import Timeline from '@/components/Timeline';
 import TravelStats from '@/components/TravelStats';
 import MemoryAlbum from '@/components/MemoryAlbum';
+import OnboardingGuide from '@/components/OnboardingGuide';
 import { useDestinations } from '@/hooks/useDestinations';
 import { useCustomEvents } from '@/hooks/useCustomEvents';
 import { buildTimeline } from '@/data/adventures';
+import { HelpCircle } from 'lucide-react';
+
+const ONBOARDING_KEY = 'hasSeenOnboarding';
 
 const Index = () => {
   const [showWelcome, setShowWelcome] = useState(true);
   const [activeSection, setActiveSection] = useState<Section>('map');
+  const [showOnboarding, setShowOnboarding] = useState(false);
+
   const { destinations, add, update, remove } = useDestinations();
   const { events: customEvents, add: addEvent, update: updateEvent, remove: removeEvent } = useCustomEvents();
 
@@ -21,10 +27,23 @@ const Index = () => {
     [destinations, customEvents]
   );
 
+  const handleStart = () => {
+    setShowWelcome(false);
+    const hasSeen = localStorage.getItem(ONBOARDING_KEY);
+    if (!hasSeen) {
+      setShowOnboarding(true);
+    }
+  };
+
+  const handleCloseOnboarding = () => {
+    setShowOnboarding(false);
+    localStorage.setItem(ONBOARDING_KEY, 'true');
+  };
+
   if (showWelcome) {
     return (
       <AnimatePresence>
-        <WelcomeScreen onStart={() => setShowWelcome(false)} />
+        <WelcomeScreen onStart={handleStart} />
       </AnimatePresence>
     );
   }
@@ -33,6 +52,26 @@ const Index = () => {
     <div className="relative h-screen overflow-hidden">
       <AdventureMap destinations={destinations} onAdd={add} onUpdate={update} onRemove={remove} />
       <NavigationBar active={activeSection} onChange={setActiveSection} />
+
+      {/* Help button */}
+      <motion.button
+        initial={{ opacity: 0, scale: 0.8 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ delay: 0.6, type: 'spring', damping: 20 }}
+        onClick={() => setShowOnboarding(true)}
+        whileHover={{ scale: 1.1 }}
+        whileTap={{ scale: 0.93 }}
+        className="fixed top-4 right-4 z-[1090] w-9 h-9 rounded-full flex items-center justify-center text-muted-foreground/60 hover:text-foreground transition-colors"
+        style={{
+          background: 'hsl(var(--card) / 0.75)',
+          backdropFilter: 'blur(12px)',
+          border: '1px solid hsl(var(--border) / 0.3)',
+          boxShadow: '0 4px 16px rgba(0,0,0,0.25)',
+        }}
+        title="Abrir guía"
+      >
+        <HelpCircle size={17} />
+      </motion.button>
 
       <AnimatePresence>
         {activeSection !== 'map' && (
@@ -65,6 +104,12 @@ const Index = () => {
             {activeSection === 'stats' && <TravelStats destinations={destinations} />}
             {activeSection === 'album' && <MemoryAlbum destinations={destinations} />}
           </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showOnboarding && (
+          <OnboardingGuide onClose={handleCloseOnboarding} />
         )}
       </AnimatePresence>
     </div>

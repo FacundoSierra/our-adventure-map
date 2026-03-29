@@ -3,11 +3,21 @@ import { motion } from 'framer-motion';
 import { X, MapPin, Search, Loader2 } from 'lucide-react';
 import type { Destination, DestinationType } from '@/data/adventures';
 import { geocodeCity, searchCities } from '@/lib/geocode';
+import ImageUploader, { type CoverSource } from './ImageUploader';
+
+const MAX_IMAGES = 5;
+
+export interface ImageSubmitData {
+  keptUrls: string[];
+  removedUrls: string[];
+  newFiles: File[];
+  cover: CoverSource;
+}
 
 interface DestinationFormProps {
   defaults: Partial<Destination>;
   editing: boolean;
-  onSubmit: (data: Omit<Destination, 'id'>) => void;
+  onSubmit: (data: Omit<Destination, 'id'>, imageData: ImageSubmitData) => void;
   onClose: () => void;
 }
 
@@ -26,6 +36,23 @@ const DestinationForm = ({ defaults, editing, onSubmit, onClose }: DestinationFo
   const [geocoding, setGeocoding] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout>>();
 
+  // Image state
+  const [existingImages, setExistingImages] = useState<string[]>(defaults.images ?? []);
+  const [removedUrls, setRemovedUrls] = useState<string[]>([]);
+  const [pendingFiles, setPendingFiles] = useState<File[]>([]);
+  const [pendingPreviews, setPendingPreviews] = useState<string[]>([]);
+  const [cover, setCover] = useState<CoverSource>(
+    defaults.coverImage ? { type: 'existing', url: defaults.coverImage } : null,
+  );
+
+  // Cleanup object URLs on unmount
+  useEffect(() => {
+    return () => {
+      pendingPreviews.forEach(p => URL.revokeObjectURL(p));
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   useEffect(() => {
     setCity(defaults.city || '');
     setCountry(defaults.country || '');
@@ -35,16 +62,17 @@ const DestinationForm = ({ defaults, editing, onSubmit, onClose }: DestinationFo
     setEmoji(defaults.emoji || '');
     setLat(defaults.lat || 0);
     setLng(defaults.lng || 0);
+    setExistingImages(defaults.images ?? []);
+    setRemovedUrls([]);
+    setPendingFiles([]);
+    setPendingPreviews(prev => { prev.forEach(p => URL.revokeObjectURL(p)); return []; });
+    setCover(defaults.coverImage ? { type: 'existing', url: defaults.coverImage } : null);
   }, [defaults]);
 
   const handleSearchChange = (value: string) => {
     setSearchQuery(value);
     if (debounceRef.current) clearTimeout(debounceRef.current);
-    if (value.length < 2) {
-      setSuggestions([]);
-      setShowSuggestions(false);
-      return;
-    }
+    if (value.length < 2) { setSuggestions([]); setShowSuggestions(false); return; }
     debounceRef.current = setTimeout(async () => {
       const results = await searchCities(value);
       setSuggestions(results);
@@ -53,13 +81,33 @@ const DestinationForm = ({ defaults, editing, onSubmit, onClose }: DestinationFo
   };
 
   const handleSelectSuggestion = (s: { city: string; country: string; lat: number; lng: number }) => {
-    setCity(s.city);
-    setCountry(s.country);
-    setLat(s.lat);
-    setLng(s.lng);
-    setSearchQuery('');
-    setSuggestions([]);
-    setShowSuggestions(false);
+    setCity(s.city); setCountry(s.country); setLat(s.lat); setLng(s.lng);
+    setSearchQuery(''); setSuggestions([]); setShowSuggestions(false);
+  };
+
+  // Image handlers
+  const handleAddFiles = (files: FileList) => {
+    const remaining = MAX_IMAGES - existingImages.length - pendingFiles.length;
+    const toAdd = Array.from(files).slice(0, remaining);
+    const previews = toAdd.map(f => URL.createObjectURL(f));
+    setPendingFiles(prev => [...prev, ...toAdd]);
+    setPendingPreviews(prev => [...prev, ...previews]);
+  };
+
+  const handleRemoveExisting = (url: string) => {
+    setExistingImages(prev => prev.filter(u => u !== url));
+    setRemovedUrls(prev => [...prev, url]);
+    if (cover?.type === 'existing' && cover.url === url) setCover(null);
+  };
+
+  const handleRemovePending = (idx: number) => {
+    URL.revokeObjectURL(pendingPreviews[idx]);
+    setPendingFiles(prev => prev.filter((_, i) => i !== idx));
+    setPendingPreviews(prev => prev.filter((_, i) => i !== idx));
+    if (cover?.type === 'pending') {
+      if (cover.idx === idx) setCover(null);
+      else if (cover.idx > idx) setCover({ type: 'pending', idx: cover.idx - 1 });
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -68,31 +116,35 @@ const DestinationForm = ({ defaults, editing, onSubmit, onClose }: DestinationFo
 
     let finalLat = lat;
     let finalLng = lng;
-
-    // Auto-geocode if no coordinates
     if (!finalLat && !finalLng) {
       setGeocoding(true);
       const result = await geocodeCity(city.trim(), country.trim());
       setGeocoding(false);
-      if (result) {
-        finalLat = result.lat;
-        finalLng = result.lng;
-      }
+      if (result) { finalLat = result.lat; finalLng = result.lng; }
     }
 
-    onSubmit({
-      city: city.trim(),
-      country: country.trim(),
-      type,
-      lat: finalLat,
-      lng: finalLng,
-      date: date || undefined,
-      note: note || undefined,
-      emoji: emoji || undefined,
-    });
+    onSubmit(
+      {
+        city: city.trim(),
+        country: country.trim(),
+        type,
+        lat: finalLat,
+        lng: finalLng,
+        date: date || undefined,
+        note: note || undefined,
+        emoji: emoji || undefined,
+      },
+      {
+        keptUrls: existingImages,
+        removedUrls,
+        newFiles: pendingFiles,
+        cover,
+      },
+    );
   };
 
-  const inputClass = "w-full bg-muted/40 border border-border/40 rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/30 transition-all";
+  const inputClass =
+    'w-full bg-muted/40 border border-border/40 rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/30 transition-all';
 
   return (
     <motion.div
@@ -109,7 +161,10 @@ const DestinationForm = ({ defaults, editing, onSubmit, onClose }: DestinationFo
         transition={{ type: 'spring', damping: 25, stiffness: 300 }}
         className="relative w-full max-w-md bg-card/98 backdrop-blur-2xl rounded-3xl border border-border/40 p-6 shadow-2xl max-h-[90vh] overflow-y-auto"
       >
-        <button onClick={onClose} className="absolute top-4 right-4 w-8 h-8 rounded-full bg-muted/60 flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors">
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 w-8 h-8 rounded-full bg-muted/60 flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
+        >
           <X size={16} />
         </button>
 
@@ -126,7 +181,7 @@ const DestinationForm = ({ defaults, editing, onSubmit, onClose }: DestinationFo
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* City search with autocomplete */}
+          {/* City search */}
           <div className="relative">
             <div className="relative">
               <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground/50" />
@@ -198,6 +253,21 @@ const DestinationForm = ({ defaults, editing, onSubmit, onClose }: DestinationFo
             rows={3}
             value={note}
             onChange={e => setNote(e.target.value)}
+          />
+
+          {/* Divider */}
+          <div className="border-t border-border/30" />
+
+          {/* Image uploader */}
+          <ImageUploader
+            existingImages={existingImages}
+            pendingPreviews={pendingPreviews}
+            cover={cover}
+            onAddFiles={handleAddFiles}
+            onRemoveExisting={handleRemoveExisting}
+            onRemovePending={handleRemovePending}
+            onSetCover={setCover}
+            maxImages={MAX_IMAGES}
           />
 
           <button
