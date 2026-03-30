@@ -18,7 +18,7 @@ interface ImageUploaderProps {
   maxImages?: number;
 }
 
-const MAX_IMAGES = 5;
+const MAX_IMAGES = 10;
 
 const ImageUploader = ({
   existingImages,

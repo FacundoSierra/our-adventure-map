@@ -5,7 +5,7 @@ import type { Destination, DestinationType } from '@/data/adventures';
 import { geocodeCity, searchCities } from '@/lib/geocode';
 import ImageUploader, { type CoverSource } from './ImageUploader';
 
-const MAX_IMAGES = 5;
+const MAX_IMAGES = 10;
 
 export interface ImageSubmitData {
   keptUrls: string[];

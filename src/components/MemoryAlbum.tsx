@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Star, Sparkles, Heart, Camera, Quote } from 'lucide-react';
+import { Sparkles, Heart, Quote, Camera } from 'lucide-react';
 import type { Destination } from '@/data/adventures';
-import { romanticQuotes, surpriseMessages } from '@/data/adventures';
+import { romanticQuotes } from '@/data/adventures';
+import ImageLightbox from './ImageLightbox';
 
 interface MemoryAlbumProps {
   destinations: Destination[];
@@ -13,10 +14,13 @@ const MemoryAlbum = ({ destinations }: MemoryAlbumProps) => {
   const wishlist = destinations.filter(d => d.type === 'wishlist');
   const [randomQuote] = useState(() => romanticQuotes[Math.floor(Math.random() * romanticQuotes.length)]);
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [lightbox, setLightbox] = useState<{ images: string[]; index: number } | null>(null);
 
   return (
     <div className="min-h-screen bg-background pt-8 md:pt-16 pb-28 px-4">
       <div className="max-w-2xl mx-auto">
+
+        {/* Header */}
         <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }} className="text-center mb-12">
           <div className="section-badge">
             <Sparkles size={14} className="text-primary" />
@@ -28,7 +32,7 @@ const MemoryAlbum = ({ destinations }: MemoryAlbumProps) => {
           <p className="text-muted-foreground/50 text-sm">Nuestro diario de aventuras juntos 📖</p>
         </motion.div>
 
-        {/* Romantic quote card */}
+        {/* Romantic quote */}
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -41,62 +45,127 @@ const MemoryAlbum = ({ destinations }: MemoryAlbumProps) => {
           </div>
         </motion.div>
 
-        {/* Visited memories */}
+        {/* Visited */}
         {visited.length > 0 && (
           <div className="mb-12">
             <h3 className="text-xs font-semibold uppercase tracking-widest text-secondary/80 mb-5 px-1 flex items-center gap-2">
               <span className="w-2.5 h-2.5 rounded-full bg-secondary" /> Nuestros viajes
             </h3>
             <div className="space-y-4">
-              {visited.map((dest, i) => (
-                <motion.div
-                  key={dest.id}
-                  initial={{ opacity: 0, y: 30 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, margin: '-30px' }}
-                  transition={{ delay: i * 0.06, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-                  whileHover={{ y: -3 }}
-                  onClick={() => setExpandedId(expandedId === dest.id ? null : dest.id)}
-                  className="glass-card-hover p-5 md:p-6 cursor-pointer"
-                >
-                  <div className="flex items-start gap-4">
-                    <div className="w-14 h-14 rounded-2xl bg-secondary/10 flex items-center justify-center text-2xl shrink-0 border border-secondary/10">
-                      {dest.emoji || '📍'}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        <h3 className="font-display text-lg md:text-xl text-cream leading-tight truncate">
-                          {dest.city}
-                        </h3>
-                        <span className="text-muted-foreground/40 text-sm">{dest.country}</span>
-                      </div>
-                      {dest.date && (
-                        <p className="text-[11px] text-secondary/50 mb-2 tracking-widest uppercase font-medium">
-                          {new Date(dest.date).toLocaleDateString('es-ES', { year: 'numeric', month: 'long' })}
-                        </p>
-                      )}
-                      {dest.note && <p className="text-sm text-foreground/50 leading-relaxed">{dest.note}</p>}
+              {visited.map((dest, i) => {
+                const hasImages = dest.images && dest.images.length > 0;
+                const isExpanded = expandedId === dest.id;
 
+                return (
+                  <motion.div
+                    key={dest.id}
+                    initial={{ opacity: 0, y: 30 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true, margin: '-30px' }}
+                    transition={{ delay: i * 0.06, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+                    className="overflow-hidden rounded-2xl border border-border/30 cursor-pointer"
+                    style={{ background: 'hsl(var(--card) / 0.6)', backdropFilter: 'blur(12px)' }}
+                    onClick={() => setExpandedId(isExpanded ? null : dest.id)}
+                  >
+                    {/* Cover image hero */}
+                    {dest.coverImage && (
+                      <div className="relative w-full h-44 overflow-hidden">
+                        <img src={dest.coverImage} alt="" className="w-full h-full object-cover" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-card/80 via-card/20 to-transparent" />
+                        {hasImages && dest.images!.length > 1 && (
+                          <div className="absolute bottom-2 right-2 bg-black/50 backdrop-blur-sm rounded-lg px-2 py-1 text-white/80 text-[10px] flex items-center gap-1">
+                            <Camera size={10} />
+                            {dest.images!.length}
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    <div className="p-5">
+                      <div className="flex items-start gap-4">
+                        {!dest.coverImage && (
+                          <div className="w-14 h-14 rounded-2xl bg-secondary/10 flex items-center justify-center text-2xl shrink-0 border border-secondary/10">
+                            {dest.emoji || '📍'}
+                          </div>
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1">
+                            <h3 className="font-display text-lg md:text-xl text-cream leading-tight truncate">
+                              {dest.city}
+                            </h3>
+                            <span className="text-muted-foreground/40 text-sm">{dest.country}</span>
+                          </div>
+                          {dest.date && (
+                            <p className="text-[11px] text-secondary/50 mb-2 tracking-widest uppercase font-medium">
+                              {new Date(dest.date).toLocaleDateString('es-ES', { year: 'numeric', month: 'long' })}
+                            </p>
+                          )}
+                          {dest.note && (
+                            <p className="text-sm text-foreground/50 leading-relaxed">{dest.note}</p>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Expanded photo grid */}
                       <AnimatePresence>
-                        {expandedId === dest.id && (
+                        {isExpanded && hasImages && (
+                          <motion.div
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: 'auto' }}
+                            exit={{ opacity: 0, height: 0 }}
+                            transition={{ duration: 0.3, ease: 'easeOut' }}
+                            className="overflow-hidden"
+                          >
+                            <div className="mt-4 pt-4 border-t border-border/20">
+                              <div className="grid grid-cols-5 gap-1.5">
+                                {dest.images!.map((url, idx) => (
+                                  <motion.button
+                                    key={url}
+                                    initial={{ opacity: 0, scale: 0.85 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    transition={{ delay: idx * 0.04 }}
+                                    whileHover={{ scale: 1.06 }}
+                                    onClick={e => {
+                                      e.stopPropagation();
+                                      setLightbox({ images: dest.images!, index: idx });
+                                    }}
+                                    className="aspect-square rounded-xl overflow-hidden border-2 transition-colors"
+                                    style={{
+                                      borderColor: url === dest.coverImage
+                                        ? 'hsl(var(--secondary))'
+                                        : 'transparent',
+                                    }}
+                                  >
+                                    <img src={url} alt="" className="w-full h-full object-cover" />
+                                  </motion.button>
+                                ))}
+                              </div>
+                              <p className="text-[10px] text-muted-foreground/30 mt-2 text-center">
+                                Toca una foto para verla
+                              </p>
+                            </div>
+                          </motion.div>
+                        )}
+
+                        {isExpanded && !hasImages && (
                           <motion.div
                             initial={{ opacity: 0, height: 0 }}
                             animate={{ opacity: 1, height: 'auto' }}
                             exit={{ opacity: 0, height: 0 }}
                             transition={{ duration: 0.3 }}
-                            className="mt-4 pt-4 border-t border-border/20"
+                            className="overflow-hidden"
                           >
-                            <div className="flex items-center gap-2 text-muted-foreground/40 text-xs">
-                              <Camera size={14} />
-                              <span>Espacio para fotos próximamente</span>
+                            <div className="mt-4 pt-4 border-t border-border/20 flex items-center gap-2 text-muted-foreground/30 text-xs">
+                              <Camera size={13} />
+                              <span>Sin fotos todavía — edita el destino para añadirlas</span>
                             </div>
                           </motion.div>
                         )}
                       </AnimatePresence>
                     </div>
-                  </div>
-                </motion.div>
-              ))}
+                  </motion.div>
+                );
+              })}
             </div>
           </div>
         )}
@@ -116,15 +185,23 @@ const MemoryAlbum = ({ destinations }: MemoryAlbumProps) => {
                   viewport={{ once: true }}
                   transition={{ delay: i * 0.08, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
                   whileHover={{ y: -4, scale: 1.02 }}
-                  className="glass-card-hover p-5 cursor-pointer group"
+                  className="relative overflow-hidden glass-card-hover p-5 cursor-pointer group"
                 >
-                  <div className="flex items-start gap-3 mb-2">
-                    <span className="text-xl">{dest.emoji || '💭'}</span>
-                    <h4 className="font-display text-lg text-cream group-hover:text-primary transition-colors duration-300 leading-tight">
-                      {dest.city}, {dest.country}
-                    </h4>
+                  {dest.coverImage && (
+                    <>
+                      <img src={dest.coverImage} alt="" className="absolute inset-0 w-full h-full object-cover opacity-10 group-hover:opacity-15 transition-opacity" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-card/90 to-card/40" />
+                    </>
+                  )}
+                  <div className="relative z-10">
+                    <div className="flex items-start gap-3 mb-2">
+                      <span className="text-xl">{dest.emoji || '💭'}</span>
+                      <h4 className="font-display text-lg text-cream group-hover:text-primary transition-colors duration-300 leading-tight">
+                        {dest.city}, {dest.country}
+                      </h4>
+                    </div>
+                    {dest.note && <p className="text-sm text-foreground/40 leading-relaxed pl-8">{dest.note}</p>}
                   </div>
-                  {dest.note && <p className="text-sm text-foreground/40 leading-relaxed pl-8">{dest.note}</p>}
                 </motion.div>
               ))}
             </div>
@@ -140,6 +217,18 @@ const MemoryAlbum = ({ destinations }: MemoryAlbumProps) => {
           </motion.div>
         )}
       </div>
+
+      {/* Lightbox */}
+      <AnimatePresence>
+        {lightbox && (
+          <ImageLightbox
+            images={lightbox.images}
+            index={lightbox.index}
+            onClose={() => setLightbox(null)}
+            onNav={index => setLightbox(prev => prev ? { ...prev, index } : null)}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 };
