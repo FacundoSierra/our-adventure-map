@@ -37,10 +37,7 @@ export const RELATIONSHIP_START = '2022-04-02';
 
 /** Generate default milestone events */
 export function getDefaultEvents(): RelationshipEvent[] {
-  const events: RelationshipEvent[] = [
-    { id: 'ms-start', date: '2023-02-01', title: 'Empezó todo', description: 'El comienzo de nuestra historia juntos.', emoji: '💫', type: 'milestone' },
-    { id: 'ms-official', date: '2023-04-01', title: 'Inicio de la relación', description: 'Hicimos oficial lo nuestro.', emoji: '❤️', type: 'milestone' },
-  ];
+  const events: RelationshipEvent[] = [];
 
   // Generate anniversaries up to the current date
   const now = new Date();
@@ -48,7 +45,7 @@ export function getDefaultEvents(): RelationshipEvent[] {
   // Only show anniversary if Apr 2 of that year has already passed
   const lastAnniversaryYear = (now.getMonth() > 3 || (now.getMonth() === 3 && now.getDate() >= 2)) ? currentYear : currentYear - 1;
 
-  for (let year = 2024; year <= lastAnniversaryYear; year++) {
+  for (let year = 2023; year <= lastAnniversaryYear; year++) {
     const num = year - 2022;
     const ordinal = num === 1 ? 'Primer' : num === 2 ? 'Segundo' : num === 3 ? 'Tercer' : num === 4 ? 'Cuarto' : `${num}º`;
     events.push({

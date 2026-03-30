@@ -9,7 +9,7 @@ import MemoryAlbum from '@/components/MemoryAlbum';
 import OnboardingGuide from '@/components/OnboardingGuide';
 import { useDestinations } from '@/hooks/useDestinations';
 import { useCustomEvents } from '@/hooks/useCustomEvents';
-import { buildTimeline } from '@/data/adventures';
+import { buildTimeline, getDefaultEvents } from '@/data/adventures';
 import { HelpCircle } from 'lucide-react';
 
 const ONBOARDING_KEY = 'hasSeenOnboarding';
@@ -23,7 +23,7 @@ const Index = () => {
   const { events: customEvents, add: addEvent, update: updateEvent, remove: removeEvent } = useCustomEvents();
 
   const timelineEvents = useMemo(
-    () => buildTimeline(destinations, customEvents),
+    () => buildTimeline(destinations, [...getDefaultEvents(), ...customEvents]),
     [destinations, customEvents]
   );
 
