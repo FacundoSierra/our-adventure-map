@@ -1,23 +1,28 @@
 import { useState, useMemo } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import WelcomeScreen from '@/components/WelcomeScreen';
+import LoveLetter from '@/components/LoveLetter';
 import NavigationBar, { type Section } from '@/components/NavigationBar';
 import AdventureMap from '@/components/AdventureMap';
 import Timeline from '@/components/Timeline';
 import TravelStats from '@/components/TravelStats';
 import MemoryAlbum from '@/components/MemoryAlbum';
 import OnboardingGuide from '@/components/OnboardingGuide';
+import ImageLightbox from '@/components/ImageLightbox';
 import { useDestinations } from '@/hooks/useDestinations';
 import { useCustomEvents } from '@/hooks/useCustomEvents';
 import { buildTimeline, getDefaultEvents } from '@/data/adventures';
-import { HelpCircle } from 'lucide-react';
 
 const ONBOARDING_KEY = 'hasSeenOnboarding';
+const LOVE_LETTER_KEY = 'loveLetterSeen';
 
 const Index = () => {
+  const [showLoveLetter, setShowLoveLetter] = useState(!localStorage.getItem(LOVE_LETTER_KEY));
   const [showWelcome, setShowWelcome] = useState(true);
   const [activeSection, setActiveSection] = useState<Section>('map');
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [lightbox, setLightbox] = useState<{ images: string[]; index: number } | null>(null);
+  const [showLetter, setShowLetter] = useState(false);
 
   const { destinations, add, update, remove } = useDestinations();
   const { events: customEvents, add: addEvent, update: updateEvent, remove: removeEvent } = useCustomEvents();
@@ -29,16 +34,27 @@ const Index = () => {
 
   const handleStart = () => {
     setShowWelcome(false);
-    const hasSeen = localStorage.getItem(ONBOARDING_KEY);
-    if (!hasSeen) {
-      setShowOnboarding(true);
-    }
+    if (!localStorage.getItem(ONBOARDING_KEY)) setShowOnboarding(true);
   };
 
   const handleCloseOnboarding = () => {
     setShowOnboarding(false);
     localStorage.setItem(ONBOARDING_KEY, 'true');
   };
+
+  if (showLoveLetter) {
+    return (
+      <AnimatePresence>
+        <LoveLetter
+          key="love-letter"
+          onClose={() => {
+            localStorage.setItem(LOVE_LETTER_KEY, 'true');
+            setShowLoveLetter(false);
+          }}
+        />
+      </AnimatePresence>
+    );
+  }
 
   if (showWelcome) {
     return (
@@ -51,27 +67,12 @@ const Index = () => {
   return (
     <div className="relative h-screen overflow-hidden">
       <AdventureMap destinations={destinations} onAdd={add} onUpdate={update} onRemove={remove} />
-      <NavigationBar active={activeSection} onChange={setActiveSection} />
-
-      {/* Help button */}
-      <motion.button
-        initial={{ opacity: 0, scale: 0.8 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ delay: 0.6, type: 'spring', damping: 20 }}
-        onClick={() => setShowOnboarding(true)}
-        whileHover={{ scale: 1.1 }}
-        whileTap={{ scale: 0.93 }}
-        className="fixed top-4 right-4 z-[1090] w-9 h-9 rounded-full flex items-center justify-center text-muted-foreground/60 hover:text-foreground transition-colors"
-        style={{
-          background: 'hsl(var(--card) / 0.75)',
-          backdropFilter: 'blur(12px)',
-          border: '1px solid hsl(var(--border) / 0.3)',
-          boxShadow: '0 4px 16px rgba(0,0,0,0.25)',
-        }}
-        title="Abrir guía"
-      >
-        <HelpCircle size={17} />
-      </motion.button>
+      <NavigationBar
+        active={activeSection}
+        onChange={setActiveSection}
+        onHelp={() => setShowOnboarding(true)}
+        onLetter={() => setShowLetter(true)}
+      />
 
       <AnimatePresence>
         {activeSection !== 'map' && (
@@ -102,14 +103,35 @@ const Index = () => {
               />
             )}
             {activeSection === 'stats' && <TravelStats destinations={destinations} />}
-            {activeSection === 'album' && <MemoryAlbum destinations={destinations} />}
+            {activeSection === 'album' && (
+              <MemoryAlbum
+                destinations={destinations}
+                onOpenLightbox={(images, index) => setLightbox({ images, index })}
+              />
+            )}
           </motion.div>
         )}
       </AnimatePresence>
 
+      {/* Lightbox — fuera del panel scrollable para evitar bug de posición */}
       <AnimatePresence>
-        {showOnboarding && (
-          <OnboardingGuide onClose={handleCloseOnboarding} />
+        {lightbox && (
+          <ImageLightbox
+            images={lightbox.images}
+            index={lightbox.index}
+            onClose={() => setLightbox(null)}
+            onNav={index => setLightbox(prev => prev ? { ...prev, index } : null)}
+          />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showOnboarding && <OnboardingGuide onClose={handleCloseOnboarding} />}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showLetter && (
+          <LoveLetter key="letter-modal" startOpen onClose={() => setShowLetter(false)} />
         )}
       </AnimatePresence>
     </div>

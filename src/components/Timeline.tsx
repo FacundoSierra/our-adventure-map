@@ -3,7 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Sparkles, Plus, Edit2, Trash2, Plane, Heart, PartyPopper, Star, MapPin } from 'lucide-react';
 import type { TimelineEvent, RelationshipEvent, Destination } from '@/data/adventures';
 import EventForm from './EventForm';
-import DestinationForm from './DestinationForm';
+import DestinationForm, { type ImageSubmitData } from './DestinationForm';
+import { uploadImage, deleteImage } from '@/lib/imageUpload';
 
 interface TimelineProps {
   events: TimelineEvent[];
@@ -12,7 +13,7 @@ interface TimelineProps {
   onRemoveEvent: (id: string) => void;
   // Destination sync
   destinations: Destination[];
-  onAddDestination: (dest: Omit<Destination, 'id'>) => void;
+  onAddDestination: (dest: Omit<Destination, 'id'>) => Promise<Destination | null>;
   onUpdateDestination: (id: string, data: Partial<Destination>) => void;
   onRemoveDestination: (id: string) => void;
 }
@@ -74,11 +75,41 @@ const Timeline = ({
     setEditingEvent(null);
   };
 
-  const handleTripSubmit = (data: Omit<Destination, 'id'>) => {
+  const handleTripSubmit = async (data: Omit<Destination, 'id'>, imageData: ImageSubmitData) => {
+    // Delete removed images
+    for (const url of imageData.removedUrls) {
+      await deleteImage(url).catch(() => {});
+    }
+
     if (editingTrip) {
-      onUpdateDestination(editingTrip.id, data);
+      // Upload new files
+      const newUrls: string[] = [];
+      for (const file of imageData.newFiles) {
+        const url = await uploadImage(file, editingTrip.id).catch(() => null);
+        if (url) newUrls.push(url);
+      }
+      const allImages = [...imageData.keptUrls, ...newUrls];
+
+      // Resolve cover URL
+      let coverImage: string | undefined;
+      if (imageData.cover?.type === 'existing') coverImage = imageData.cover.url;
+      else if (imageData.cover?.type === 'pending') coverImage = newUrls[imageData.cover.idx] ?? allImages[0];
+      else coverImage = allImages[0];
+
+      onUpdateDestination(editingTrip.id, { ...data, images: allImages, coverImage });
     } else {
-      onAddDestination(data);
+      const saved = await onAddDestination(data);
+      if (saved && imageData.newFiles.length > 0) {
+        const newUrls: string[] = [];
+        for (const file of imageData.newFiles) {
+          const url = await uploadImage(file, saved.id).catch(() => null);
+          if (url) newUrls.push(url);
+        }
+        let coverImage: string | undefined;
+        if (imageData.cover?.type === 'pending') coverImage = newUrls[imageData.cover.idx] ?? newUrls[0];
+        else coverImage = newUrls[0];
+        if (newUrls.length > 0) onUpdateDestination(saved.id, { images: newUrls, coverImage });
+      }
     }
     setShowTripForm(false);
     setEditingTrip(null);

@@ -47,10 +47,10 @@ const ImageUploader = ({
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between">
-        <span className="text-xs font-medium text-muted-foreground/70 tracking-wide">
+        <span className="text-xs font-medium text-foreground/80 tracking-wide">
           Fotos del viaje
         </span>
-        <span className="text-[11px] text-muted-foreground/40">
+        <span className="text-[11px] text-foreground/60">
           {total}/{maxImages}
         </span>
       </div>

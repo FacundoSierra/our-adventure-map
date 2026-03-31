@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { motion } from 'framer-motion';
 import { X, MapPin, Search, Loader2 } from 'lucide-react';
 import type { Destination, DestinationType } from '@/data/adventures';
@@ -146,14 +147,14 @@ const DestinationForm = ({ defaults, editing, onSubmit, onClose }: DestinationFo
   const inputClass =
     'w-full bg-muted/40 border border-border/40 rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/30 transition-all';
 
-  return (
+  return createPortal(
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="absolute inset-0 z-[1002] flex items-center justify-center p-4"
+      className="fixed inset-0 z-[1200] flex items-center justify-center p-4"
     >
-      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
+      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
       <motion.div
         initial={{ opacity: 0, y: 40, scale: 0.95 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -280,7 +281,8 @@ const DestinationForm = ({ defaults, editing, onSubmit, onClose }: DestinationFo
           </button>
         </form>
       </motion.div>
-    </motion.div>
+    </motion.div>,
+    document.body
   );
 };
 

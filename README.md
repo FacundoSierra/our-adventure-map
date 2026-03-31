@@ -1,73 +1,74 @@
-# Welcome to your Lovable project
+# 💌 Nuestra Historia — Mapa de Aventuras
 
-## Project info
+Una plataforma privada para guardar y celebrar los momentos de nuestra relación: viajes, eventos, fotos y recuerdos.
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+---
 
-## How can I edit this code?
+## Stack tecnológico
 
-There are several ways of editing your application.
+- **React + TypeScript + Vite** — frontend
+- **Tailwind CSS + shadcn/ui** — estilos y componentes
+- **Framer Motion** — animaciones
+- **Leaflet.js** — mapa interactivo
+- **Supabase** — base de datos (PostgreSQL) y almacenamiento de fotos
 
-**Use Lovable**
-
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
-
-Changes made via Lovable will be committed automatically to this repo.
-
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
+## Arrancar en local
 
 ```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
+npm install
 npm run dev
+# Abre http://localhost:8080
 ```
 
-**Edit a file directly in GitHub**
+Para ver la carta de aniversario de nuevo:
+```js
+// En la consola del navegador (DevTools)
+localStorage.removeItem('loveLetterSeen')
+```
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+---
 
-**Use GitHub Codespaces**
+## Roadmap — Ideas de mejora
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+### Prioridad alta
 
-## What technologies are used for this project?
+- [ ] **Modo offline / PWA** — instalar la app en el móvil como si fuera nativa, que funcione sin conexión con sincronización posterior
+- [ ] **Notificaciones de aniversario** — alerta automática cuando llega el aniversario o fechas especiales marcadas en la timeline
+- [ ] **Búsqueda en la timeline** — filtrar eventos por año, tipo o palabra clave
+- [ ] **Más fotos por destino** — subir el límite de 10 fotos o hacer que sea configurable por viaje
 
-This project is built with:
+### Experiencia de usuario
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+- [ ] **Reordenar fotos** — drag & drop para cambiar el orden de las fotos dentro de un destino
+- [ ] **Zoom suave en el mapa** — animar la transición al abrir el mapa por primera vez haciendo un tour por todos los destinos
+- [ ] **Modo presentación** — vista de pantalla completa que hace slideshow automático de todos los destinos con sus fotos, ideal para enseñarlo en una TV
+- [ ] **Estadísticas ampliadas** — kilómetros recorridos totales, país más visitado, mes favorito para viajar, racha de viajes
+- [ ] **Etiquetas / categorías** — poder etiquetar eventos (primera vez, favorito, espontáneo...) y filtrar por ellas
+- [ ] **Notas de voz** — grabar un audio corto asociado a un viaje o evento
 
-## How can I deploy this project?
+### Contenido y personalización
 
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
+- [ ] **Cartas por aniversario** — sistema para escribir una nueva carta cada año y poder releerlas todas
+- [ ] **Bucket list con progreso** — lista de cosas que queréis hacer/visitar con porcentaje de completado
+- [ ] **Canciones del momento** — asociar una canción de Spotify a cada viaje o evento (con preview)
+- [ ] **Clima de los viajes** — mostrar qué tiempo hacía en cada destino en la fecha del viaje (API meteorológica histórica)
+- [ ] **Mapa de calor** — overlay en el mapa que muestra las zonas más visitadas
 
-## Can I connect a custom domain to my Lovable project?
+### Técnico
 
-Yes, you can!
+- [ ] **Almacenamiento local de fotos** — guardar las fotos en `public/travel-images/` en vez de Supabase Storage (plan detallado ya redactado, listo para implementar)
+- [ ] **Backup automático** — exportar todos los datos y fotos en un ZIP descargable
+- [ ] **Múltiples álbumes** — organizar las fotos por categorías además de por destino (cumpleaños, navidades, días especiales...)
+- [ ] **Historial de cambios** — poder ver cuándo se añadió cada recuerdo
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+---
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+## Secciones actuales
+
+| Sección | Descripción |
+|---|---|
+| 🗺️ **Mapa** | Mapa interactivo con marcadores para visitados y wishlist. Fotos de portada como marcador circular. |
+| 📅 **Historia** | Timeline cronológica con aniversarios automáticos, eventos personalizados e hitos. |
+| 📊 **Stats** | Estadísticas de viajes: países, continentes, tipo de destinos. |
+| 📸 **Álbum** | Galería de recuerdos con fotos por destino, lightbox y frases románticas. |
+| 💌 **Carta** | Carta de amor del 4º aniversario, siempre accesible desde la barra de navegación. |

@@ -318,7 +318,7 @@ const AdventureMap = ({ destinations, onAdd, onUpdate, onRemove }: AdventureMapP
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.9 }}
               transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[calc(100%-2rem)] max-w-[440px] z-[1070] bg-card/95 backdrop-blur-xl rounded-2xl border border-border/50 shadow-2xl overflow-hidden"
+              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[calc(100%-2rem)] max-w-[440px] z-[1070] bg-card/95 backdrop-blur-xl rounded-2xl border border-border/50 shadow-2xl overflow-hidden max-h-[85vh] overflow-y-auto"
               style={{ boxShadow: `0 0 40px ${typeConfig[syncedSelected.type].glow},0 20px 60px rgba(0,0,0,0.5)` }}
             >
               {/* Cover image */}
