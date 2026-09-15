@@ -17,7 +17,7 @@ const ONBOARDING_KEY = 'hasSeenOnboarding';
 const LOVE_LETTER_KEY = 'loveLetterSeen';
 
 const Index = () => {
-  const [showLoveLetter, setShowLoveLetter] = useState(!localStorage.getItem(LOVE_LETTER_KEY));
+  const [showLoveLetter, setShowLoveLetter] = useState(true);
   const [showWelcome, setShowWelcome] = useState(true);
   const [activeSection, setActiveSection] = useState<Section>('map');
   const [showOnboarding, setShowOnboarding] = useState(false);
